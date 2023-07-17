@@ -1,0 +1,8 @@
+-------------------------------------------------------------------------------
+Test set: edu.upc.etsetb.tfm.xml_signature_validation.signature.BasicSignatureValidationTest
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 4.613 s <<< FAILURE! - in edu.upc.etsetb.tfm.xml_signature_validation.signature.BasicSignatureValidationTest
+test_02_SignerCertificateFound  Time elapsed: 4.525 s  <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "edu.upc.etsetb.tfm.xml_signature_validation.signature.PolicyIdentifier.getDefaultPolicyIdentifier()" because "this.signatureValidationPolicies" is null
+	at edu.upc.etsetb.tfm.xml_signature_validation.signature.BasicSignatureValidationTest.test_02_SignerCertificateFound(BasicSignatureValidationTest.java:171)
+
