@@ -99,13 +99,19 @@ public class LTSignatureValidator {
         result = checkRevocationFreshness(result, basicSignatureValidator);
         
         /* Signature Acceptance Validation */
-        result = basicSignatureValidator.validateSignatureAcceptance(this.bestSignatureTime);
+        if (result.getValue() != Indication.FAILED) {
+            result = basicSignatureValidator.validateSignatureAcceptance(this.bestSignatureTime);
+        }
         
         return result;
     }
     
     private Indication validateSignatureTimeStamps(Indication basicSignatureValidationResult) throws ParseException {
         
+        /* If earliest existence time of the signature is not provided as input, set is to validation time */
+        if (this.signatureExistence == null) {
+            this.signatureExistence = this.validationTime;
+        }
         /* Time-Stamps validation */
         this.bestSignatureTime = this.signatureExistence;
         TimeStampValidator timeStampValidator;
@@ -125,9 +131,10 @@ public class LTSignatureValidator {
             timeStampValidator = TimeStampValidator.getInstance(timeStamp, timeStamp.getSignedProperties().getSignedSignatureProperties().getSigningCertificate(), this.signatureValidationPolicies, this.allowableValidationPolicyIds, this.trustAnchors, this.localConfiguration, this.chainPathVerifier);
             timeStampValidationResult = timeStampValidator.validate();
             /* If validation successes and generation time is before best-signature-time, update best-signature-time */
-            if ((timeStampValidationResult.getValue() == Indication.PASSED)
-                && (true == timeStamp.getTSTInfo().getGenTime().getDate().before(this.bestSignatureTime))) {
-                this.bestSignatureTime = timeStamp.getTSTInfo().getGenTime().getDate();
+            if (timeStampValidationResult.getValue() == Indication.PASSED) {
+                if (true == timeStamp.getTSTInfo().getGenTime().getDate().before(this.bestSignatureTime)) {
+                    this.bestSignatureTime = timeStamp.getTSTInfo().getGenTime().getDate();
+                }
             /* Check if Time-Stamp validation is needed */
             } else if (true == this.signatureValidationPolicies.getSignatureElementConstraints().isTimeStampValidationNeeded()) {
                 return timeStampValidationResult;
@@ -149,12 +156,12 @@ public class LTSignatureValidator {
                 }
             }
             case SubIndication.REVOKED_NO_POE -> {
-                if (false == this.chainPathVerifier.getRevocationStatusInformation().getExpiredCertsOnCRL().after(this.bestSignatureTime)) {
+                if (true == this.chainPathVerifier.getRevocationStatusInformation().getExpiredCertsOnCRL().before(this.bestSignatureTime)) {
                     return basicSignatureValidationResult;
                 }
             }
             case SubIndication.REVOKED_CA_NO_POE -> {
-                if (false == this.chainPathVerifier.getRevocationStatusInformation().getExpiredCertsOnCRL().after(this.bestSignatureTime)) {
+                if (true == this.chainPathVerifier.getRevocationStatusInformation().getExpiredCertsOnCRL().before(this.bestSignatureTime)) {
                     return basicSignatureValidationResult;
                 }
             }

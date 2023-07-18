@@ -5,6 +5,7 @@
  */
 package edu.upc.etsetb.tfm.xml_signature_validation.signature;
 
+import java.security.PublicKey;
 import java.util.Date;
 import java.util.List;
 
@@ -34,7 +35,7 @@ public interface Signature {
     public void setFormat(String format);
     public void addDeprectedAlgorithm(String algorithm);
     
-    public boolean checkSignatureValue(String signatureValue, String signatureAlgorithm, byte[] publicKeyValue);
+    public boolean checkSignatureValue(String signatureValue, String signatureAlgorithm, PublicKey publicKey);
     public ProofOfExistence createPOE(Object object, Date date);
     
     

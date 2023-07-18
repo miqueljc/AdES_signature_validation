@@ -18,7 +18,6 @@ import edu.upc.etsetb.tfm.xml_signature_validation.signature.ProofOfExistence;
 import edu.upc.etsetb.tfm.xml_signature_validation.signature.PublicKeyContent;
 import edu.upc.etsetb.tfm.xml_signature_validation.signature.Signature;
 import edu.upc.etsetb.tfm.xml_signature_validation.signature.SignatureCertificate;
-import edu.upc.etsetb.tfm.xml_signature_validation.signature.SignatureValidationPolicy;
 import edu.upc.etsetb.tfm.xml_signature_validation.signature.SignedDataObject;
 import edu.upc.etsetb.tfm.xml_signature_validation.signature.SignerDocument;
 import edu.upc.etsetb.tfm.xml_signature_validation.signature.TimeStamp;
@@ -406,11 +405,12 @@ public class LTASignatureValidator {
                 if ((pastSignatureValidation(timeStamp, timeStamp.getTSACertificate(), timeStampValidationResult).getValue() == Indication.PASSED)
                     && (true == this.signatureValidationPolicies.getCryptographicConstraints().isAlgorithmReliable(timeStamp.getSignatureAlgorithm(), timeStamp.getTSTInfo().getGenTime().getDate()))) {
                     this.signaturePOEs.addAll(extractPOEs(timeStamp));
+                    this.processedTimeStamps.add(timeStamp);
                 }
-            } else if (false == this.signatureValidationPolicies.getSignatureElementConstraints().isAttributeValidationNeeded(timeStamp)) {
-                continue;
-            } else{
+            } else if (true == this.signatureValidationPolicies.getSignatureElementConstraints().isAttributeValidationNeeded(timeStamp)) {
                 return timeStampValidationResult;
+            } else{
+                /* Do nothing */
             }
         }
         return Indication.getInstance(Indication.PASSED);

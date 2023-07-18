@@ -310,7 +310,7 @@ public class BasicSignatureValidator {
                 return Indication.getInstance(Indication.FAILED, SubIndication.HASH_FAILURE);
             }
         }
-        if (true == this.signature.checkSignatureValue(this.signature.getSignatureValue(), this.signature.getSignatureAlgorithm(), this.signingCertificate.getPublicKey().getEncoded())) {
+        if (true == this.signature.checkSignatureValue(this.signature.getSignatureValue(), this.signature.getSignatureAlgorithm(), this.signingCertificate.getPublicKey())) {
             return Indication.getInstance(Indication.PASSED);
         } else{
             return Indication.getInstance(Indication.FAILED, SubIndication.SIG_CRYPTO_FAILURE);
