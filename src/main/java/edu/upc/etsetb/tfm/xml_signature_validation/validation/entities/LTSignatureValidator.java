@@ -77,12 +77,13 @@ public class LTSignatureValidator {
         /* Signature Time-Stamp validation */
         /* Check if Basic Signature Validation result can be solved by changing the validation time */
         if ((result.getValue() == Indication.FAILED)
-            || (result.getValue() == Indication.INDETERMINATE) 
+            || (result.getValue() == Indication.PASSED)
+            || ((result.getValue() == Indication.INDETERMINATE) 
                 && ((result.getSubIndication() != SubIndication.CRYPTO_CONSTRAINTS_FAILURE_NO_POE)
                 && (result.getSubIndication() != SubIndication.REVOKED_NO_POE)
                 && (result.getSubIndication() != SubIndication.REVOKED_CA_NO_POE)
                 && (result.getSubIndication() != SubIndication.TRY_LATER)
-                && (result.getSubIndication() != SubIndication.OUT_OF_BOUNDS_NO_POE))) {
+                && (result.getSubIndication() != SubIndication.OUT_OF_BOUNDS_NO_POE)))) {
             return result;
         }
         /* Check if result has changed */
@@ -95,11 +96,8 @@ public class LTSignatureValidator {
         /* Time comparison */
         result = compareTimes(result, basicSignatureValidator);
         
-        /* Revocation Freshness Checker */
-        result = checkRevocationFreshness(result, basicSignatureValidator);
-        
         /* Signature Acceptance Validation */
-        if (result.getValue() != Indication.FAILED) {
+        if (result.getValue() == Indication.PASSED) {
             result = basicSignatureValidator.validateSignatureAcceptance(this.bestSignatureTime);
         }
         
@@ -169,6 +167,11 @@ public class LTSignatureValidator {
                 if (true == this.signingCertificate.getRevocationStatusInformation().getIssuanceDate().after(this.bestSignatureTime)) {
                     return Indication.getInstance(Indication.FAILED, SubIndication.NOT_YET_VALID);
                 } else {
+                    return Indication.getInstance(Indication.PASSED);
+                }
+            }
+            case SubIndication.TRY_LATER -> {
+                if (Indication.FAILED == basicSignatureValidator.checkFreshness(this.signingCertificate, this.signatureValidationPolicies.getX509ValidationConstraints(), this.bestSignatureTime).getValue()) {
                     return basicSignatureValidationResult;
                 }
             }
@@ -193,23 +196,14 @@ public class LTSignatureValidator {
         /* Handle Time-Stamp delay if requested by policies */
         if (this.signatureValidationPolicies.getSignatureElementConstraints().isTimeStampDelayNeeded()) {
             for (TimeStamp signatureTimeStamp : this.signatureTimeStamps) {
-                if ((true == signatureTimeStamp.hasDelay())
+                if ((false == signatureTimeStamp.hasDelay())
                     || (signatureTimeStamp.getTSTInfo().getGenTime().getDate().getTime() + signatureTimeStamp.getDelayMs() <= this.bestSignatureTime.getTime())) {
                     return Indication.getInstance(Indication.INDETERMINATE, SubIndication.SIG_CONSTRAINTS_FAILURE);
                 }          
             }
         }
 
-        return basicSignatureValidationResult;
-    }
-    
-    private Indication checkRevocationFreshness(Indication basicSignatureValidationResult, BasicSignatureValidator basicSignatureValidator) {
-        if ((basicSignatureValidationResult.getValue() == Indication.INDETERMINATE)
-            && (basicSignatureValidationResult.getSubIndication() == SubIndication.TRY_LATER)) {
-            return basicSignatureValidator.checkFreshness(this.signingCertificate, this.signatureValidationPolicies.getX509ValidationConstraints(), this.bestSignatureTime);
-        } else {
-            return basicSignatureValidationResult;
-        }
+        return Indication.getInstance(Indication.PASSED);
     }
     
     public Signature getSignature() {

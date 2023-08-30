@@ -39,6 +39,7 @@ public class TimeStampValidator {
         this.allowableValidationPolicyIds = allowableValidationPolicyIds;
         this.localConfiguration = localConfiguration;
         this.trustAnchors = trustAnchors;
+        this.chainPathVerifier = chainPathVerifier;
     }
     
     public static TimeStampValidator getInstance(TimeStamp timeStamp, SignatureCertificate timeStampCertificate, PolicyIdentifier signatureValidationPolicies, List<ObjectIdentifier> allowableValidationPolicyIds, Set<TrustAnchor> trustAnchors, LocalConfiguration localConfiguration, PKIXCertificationPathVerifier chainPathVerifier) {

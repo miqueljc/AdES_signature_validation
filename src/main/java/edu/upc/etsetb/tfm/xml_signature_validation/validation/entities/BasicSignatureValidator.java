@@ -272,8 +272,7 @@ public class BasicSignatureValidator {
                 }
                 /* Check if signing certificate is in validity range */
                 Date signingCertificateValidityTime = this.signatureValidationPolicies.getX509ValidationConstraints().getSigningCertificateValidityRange();
-                if ((signingCertificateValidityTime != null)
-                        && ((new Date(this.signingCertificate.getRevocationStatusInformation().getIssuanceDate().getTime() + signingCertificateValidityTime.getTime()))).after(this.validationTime)) {
+                if (true == ((new Date(this.signingCertificate.getRevocationStatusInformation().getIssuanceDate().getTime() + signingCertificateValidityTime.getTime()))).after(this.validationTime)) {
                     return Indication.getInstance(Indication.PASSED);
                 } else {
                     this.signingCertificate.getRevocationStatusInformation().setRevocationTime(new Date(this.signingCertificate.getRevocationStatusInformation().getIssuanceDate().getTime() + signingCertificateValidityTime.getTime()));
@@ -306,7 +305,7 @@ public class BasicSignatureValidator {
         }
         /* Check signed data objects integrity */
         for (SignedDataObject signedDataObject : signedDataObjects) {
-            if (true == signedDataObject.checkIntegrity()) {
+            if (false == signedDataObject.checkIntegrity()) {
                 return Indication.getInstance(Indication.FAILED, SubIndication.HASH_FAILURE);
             }
         }

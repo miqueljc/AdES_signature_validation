@@ -258,7 +258,7 @@ public class LTASignatureValidator {
                 || (true == certificate.getRevocationStatusInformation().getIssuanceDate().after(controlTime))) {
                 return Indication.getInstance(Indication.INDETERMINATE, SubIndication.NO_POE);
             }
-            /* Check that POE of the signature and the revocation status information are before control-time */
+            /* Check that POE of the certificate and the revocation status information are before control-time */
             certificatePOEFound = false;
             revocationInfoPOEFound = false;
             for (ProofOfExistence poe : this.signaturePOEs) {
@@ -329,7 +329,7 @@ public class LTASignatureValidator {
                 case SubIndication.REVOKED_NO_POE:
                     return Indication.getInstance(Indication.PASSED);
                 case SubIndication.REVOKED_CA_NO_POE:
-                    /* Check if the Signer Certificate of the revoked CA is signer at or before the revocation time of the CA certificate */
+                    /* Check if there is POE of the Signer Certificate of the revoked CA revocation status information at or before the revocation time of the CA certificate */
                     for (ProofOfExistence poe : this.signaturePOEs) {
                         if (true == poe.isSignerPOEOfCertificate(this.signingCertificate.getRevocationStatusInformation().getRevokedCACertificate())) {
                             if (true == this.signingCertificate.getRevocationStatusInformation().getRevokedCACertificate().getRevocationStatusInformation().getRevocationDate().after(poe.getSigningTime())) {
@@ -340,9 +340,10 @@ public class LTASignatureValidator {
                     break;
                 case SubIndication.OUT_OF_BOUNDS_NO_POE:
                     /* Check if best-signature-time is before issuance time of the Signing Certificate */
-                    if (true == this.bestSignatureTime.before(this.signingCertificate.getRevocationStatusInformation().getIssuanceDate())) {
+                    if (true == this.bestSignatureTime.before(this.signature.getSignedProperties().getSignedSignatureProperties().getSigningCertificate().getRevocationStatusInformation().getIssuanceDate())) {
                         return Indication.getInstance(Indication.INDETERMINATE, SubIndication.NOT_YET_VALID);
-                    } else if (true == this.bestSignatureTime.before(this.signingCertificate.getRevocationStatusInformation().getRevocationDate())) {
+                    /* Check if best-signature-time is before revocation date of the Signing Certificate */
+                    } else if (true == this.bestSignatureTime.before(this.signature.getSignedProperties().getSignedSignatureProperties().getSigningCertificate().getRevocationStatusInformation().getRevocationDate())) {
                         return Indication.getInstance(Indication.PASSED);
                     } else {
                         /* Do nothing */
@@ -352,12 +353,15 @@ public class LTASignatureValidator {
             
         if ((validationTimeResult.getValue() == Indication.INDETERMINATE)
             && (validationTimeResult.getSubIndication() == SubIndication.CRYPTO_CONSTRAINTS_FAILURE_NO_POE)) {
+            /* Check if there is a POE that uses the deprecated algorithms at their respective reliable time */
+            boolean isPOEfound = false;
             for (String algorithm : signature.getAllDeprecatedAlgorithms()) {
+                isPOEfound = false;
                 for (ProofOfExistence poe : this.signaturePOEs) {
                     try {
                         if (true == (PublicKeyContent.stringToPublicKeyContent(((SignedDataObject)poe.getObject()).getEncoding()).getAlgorithm().equals(algorithm))
                              && (poe.getSigningTime().before(this.signatureValidationPolicies.getCryptographicConstraints().getLastSecureAlgorithmDate(algorithm)))) {
-                            return Indication.getInstance(Indication.PASSED);
+                            isPOEfound = true;
                         }
 
                     } catch (Exception e) {
@@ -365,7 +369,11 @@ public class LTASignatureValidator {
                     }
                     
                 }
+                if (false == isPOEfound) {
+                    return validationTimeResult;
+                }
             }
+            return Indication.getInstance(Indication.PASSED);
         }
         return validationTimeResult;
     }
@@ -397,6 +405,7 @@ public class LTASignatureValidator {
             if ((timeStampValidationResult.getValue() == Indication.PASSED)
                 && (true == this.signatureValidationPolicies.getCryptographicConstraints().isAlgorithmReliable(timeStamp.getSignatureAlgorithm(), timeStamp.getTSTInfo().getGenTime().getDate()))) {
                 this.signaturePOEs.addAll(extractPOEs(timeStamp));
+                this.processedTimeStamps.add(timeStamp);
             } else if ((timeStampValidationResult.getValue() == Indication.INDETERMINATE)
                         && ((timeStampValidationResult.getSubIndication() == SubIndication.REVOKED_NO_POE)
                             || (timeStampValidationResult.getSubIndication() == SubIndication.REVOKED_CA_NO_POE)

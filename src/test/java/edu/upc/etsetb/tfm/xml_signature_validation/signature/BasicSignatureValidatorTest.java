@@ -9,10 +9,13 @@ package edu.upc.etsetb.tfm.xml_signature_validation.signature;
 import edu.upc.etsetb.tfm.xml_signature_validation.report.entities.Indication;
 import edu.upc.etsetb.tfm.xml_signature_validation.report.entities.SubIndication;
 import edu.upc.etsetb.tfm.xml_signature_validation.signature.PKIXCertificationPathVerifier.PathValidationStatus;
+import edu.upc.etsetb.tfm.xml_signature_validation.signature.entities.signature_validation_policies.validation_constraints.CryptographicConstraints;
+import edu.upc.etsetb.tfm.xml_signature_validation.signature.entities.signature_validation_policies.validation_constraints.SignatureElementConstraints;
 import edu.upc.etsetb.tfm.xml_signature_validation.signature.entities.signature_validation_policies.validation_constraints.X509ValidationConstraints;
 import edu.upc.etsetb.tfm.xml_signature_validation.signature.entities.signature_validation_policies.validation_constraints.X509ValidationConstraints.ValidationModel;
 import edu.upc.etsetb.tfm.xml_signature_validation.validation.entities.BasicSignatureValidator;
 import java.math.BigInteger;
+import java.security.PublicKey;
 import java.security.cert.TrustAnchor;
 import java.util.ArrayList;
 import java.util.Date;
@@ -152,9 +155,11 @@ public class BasicSignatureValidatorTest {
         SignedSignatureProperties mockedSignedSignatureProperties = mock(SignedSignatureProperties.class);
         SignatureCertificate mockedSigningCertificate = mock(SignatureCertificate.class);
         SignatureCertificate mockedSignerCertificate = mock(SignatureCertificate.class);
-        String mockedSignerCertificateDigest = "AB12343BF";
+        String mockedSignerCertificateDigest = "BQUF";
         String mockedSignerCertificateAlgorithm = "RSA-256";
+        byte[] mockedPolicyHashValue = new byte[]{(byte)5,(byte)5,(byte)5};
         PolicyIdentifier mockedPolicyIdentifier = mock(PolicyIdentifier.class);
+        DigestAlgorithm mockedDigestAlgorithm = mock(DigestAlgorithm.class);
         List<SignatureCertificate> mockedChainOfCertificates = new ArrayList<>();
         
         
@@ -169,8 +174,9 @@ public class BasicSignatureValidatorTest {
         Mockito.when(this.localConfigurationMock.getDefaultPolicyIdentifier()).thenReturn(mockedPolicyIdentifier);
         Mockito.when(mockedPolicyIdentifier.getSignaturePolicyDocument()).thenReturn(true);
         Mockito.when(mockedPolicyIdentifier.parseSignaturePolicyDocument()).thenReturn(true);
-        Mockito.when(this.signatureMock.getSignatureValue()).thenReturn(mockedSignerCertificateDigest);
-        Mockito.when(mockedPolicyIdentifier.applySignatureTransforms(this.signatureMock)).thenReturn(mockedSignerCertificateDigest);
+        Mockito.when(mockedPolicyIdentifier.getHash()).thenReturn(mockedDigestAlgorithm);
+        Mockito.when(mockedDigestAlgorithm.getValue()).thenReturn(mockedPolicyHashValue);
+        Mockito.when(mockedPolicyIdentifier.applySignatureTransforms(signatureMock)).thenReturn(mockedSignerCertificateDigest);
         Mockito.when(mockedSigningCertificate.getChainOfCertificates()).thenReturn(mockedChainOfCertificates);
         
         /* Function to test */
@@ -361,11 +367,12 @@ public class BasicSignatureValidatorTest {
         
         /* Initialize local mocked variables */
         String mockedCertificateDigest = "AB12343FAA";
-        String mockedCertificateDigest2 = "AB12343BF";
         String mockedCertificateAlgorithm = "RSA-256";
+        byte[] mockedPolicyHashValue = new byte[]{(byte)5,(byte)5,(byte)5};
+        PolicyIdentifier mockedPolicyIdentifier = mock(PolicyIdentifier.class);
+        DigestAlgorithm mockedDigestAlgorithm = mock(DigestAlgorithm.class);
         SignatureCertificate mockedCertificate = mock(SignatureCertificate.class);
         ObjectIdentifier mockedObjectIdentifier = mock(ObjectIdentifier.class);
-        PolicyIdentifier mockedPolicyIdentifier = mock(PolicyIdentifier.class);
         
         /* Calls to mocks */
         identifySigningCertificateForcePassed(mockedCertificate, mockedCertificateDigest, mockedCertificateAlgorithm);
@@ -374,8 +381,9 @@ public class BasicSignatureValidatorTest {
         Mockito.when(this.localConfigurationMock.getDefaultPolicyIdentifier()).thenReturn(mockedPolicyIdentifier);
         Mockito.when(mockedPolicyIdentifier.getSignaturePolicyDocument()).thenReturn(true);
         Mockito.when(mockedPolicyIdentifier.parseSignaturePolicyDocument()).thenReturn(true);
-        Mockito.when(this.signatureMock.getSignatureValue()).thenReturn(mockedCertificateDigest);
-        Mockito.when(mockedPolicyIdentifier.applySignatureTransforms(this.signatureMock)).thenReturn(mockedCertificateDigest2);
+        Mockito.when(mockedPolicyIdentifier.getHash()).thenReturn(mockedDigestAlgorithm);
+        Mockito.when(mockedDigestAlgorithm.getValue()).thenReturn(mockedPolicyHashValue);
+        Mockito.when(mockedPolicyIdentifier.applySignatureTransforms(signatureMock)).thenReturn(mockedCertificateDigest);
         
         /* Function to test */
         Indication validationResult = this.instance.validate(false);
@@ -418,8 +426,12 @@ public class BasicSignatureValidatorTest {
         this.instance = BasicSignatureValidator.getInstance(signatureMock, signerDocumentMock, signingCertificateMock, trustAnchorsMock, allowableValidationPolicyIdsMock, signatureValidationPoliciesMock, localConfigurationMock, validationTimeMock, chainPathVerifierMock);
         
         /* Initialize local mocked variables */
-        String mockedCertificateDigest = "AB12343BF";
+        String mockedCertificateDigest = "AB12343FAA";
         String mockedCertificateAlgorithm = "RSA-256";
+        String mockedCertificateDigest2 = "BQUF";
+        byte[] mockedPolicyHashValue = new byte[]{(byte)5,(byte)5,(byte)5};
+        PolicyIdentifier mockedPolicyIdentifier = mock(PolicyIdentifier.class);
+        DigestAlgorithm mockedDigestAlgorithm = mock(DigestAlgorithm.class);
         SignatureCertificate mockedCertificate = mock(SignatureCertificate.class);
         DigestAlgorithm mockedHash = mock(DigestAlgorithm.class);
         String mockedIdentifier1 = "1";
@@ -439,8 +451,9 @@ public class BasicSignatureValidatorTest {
                                                             .thenReturn(mockedIdentifier1).thenReturn(mockedIdentifier1);
         Mockito.when(this.signatureValidationPoliciesMock.getSignaturePolicyDocument()).thenReturn(true);
         Mockito.when(this.signatureValidationPoliciesMock.parseSignaturePolicyDocument()).thenReturn(true);
-        Mockito.when(this.signatureMock.getSignatureValue()).thenReturn(mockedCertificateDigest);
-        Mockito.when(this.signatureValidationPoliciesMock.applySignatureTransforms(this.signatureMock)).thenReturn(mockedCertificateDigest);
+        Mockito.when(signatureValidationPoliciesMock.getHash()).thenReturn(mockedDigestAlgorithm);
+        Mockito.when(mockedDigestAlgorithm.getValue()).thenReturn(mockedPolicyHashValue);
+        Mockito.when(signatureValidationPoliciesMock.applySignatureTransforms(signatureMock)).thenReturn(mockedCertificateDigest2);
         
         Mockito.when(this.signingCertificateMock.getChainOfCertificates()).thenReturn(mockedChain);
         Mockito.when(this.signatureValidationPoliciesMock.getX509ValidationConstraints()).thenReturn(mockedX09ValidationContraints);
@@ -485,8 +498,10 @@ public class BasicSignatureValidatorTest {
         this.instance = BasicSignatureValidator.getInstance(signatureMock, signerDocumentMock, signingCertificateMock, trustAnchorsMock, allowableValidationPolicyIdsMock, signatureValidationPoliciesMock, localConfigurationMock, validationTimeMock, chainPathVerifierMock);
         
         /* Initialize local mocked variables */
-        String mockedCertificateDigest = "AB12343BF";
+        String mockedCertificateDigest = "BQUF";
         String mockedCertificateAlgorithm = "RSA-256";
+        byte[] mockedPolicyHashValue = new byte[]{(byte)5,(byte)5,(byte)5};
+        DigestAlgorithm mockedDigestAlgorithm = mock(DigestAlgorithm.class);
         SignatureCertificate mockedCertificate = mock(SignatureCertificate.class);
         DigestAlgorithm mockedHash = mock(DigestAlgorithm.class);
         String mockedIdentifier1 = "1";
@@ -506,8 +521,9 @@ public class BasicSignatureValidatorTest {
         Mockito.when(this.localConfigurationMock.getDefaultPolicyIdentifier()).thenReturn(mockedPolicyIdentifier);
         Mockito.when(mockedPolicyIdentifier.getSignaturePolicyDocument()).thenReturn(true);
         Mockito.when(mockedPolicyIdentifier.parseSignaturePolicyDocument()).thenReturn(true);
-        Mockito.when(this.signatureMock.getSignatureValue()).thenReturn(mockedCertificateDigest);
-        Mockito.when(mockedPolicyIdentifier.applySignatureTransforms(this.signatureMock)).thenReturn(mockedCertificateDigest);
+        Mockito.when(mockedPolicyIdentifier.getHash()).thenReturn(mockedDigestAlgorithm);
+        Mockito.when(mockedDigestAlgorithm.getValue()).thenReturn(mockedPolicyHashValue);
+        Mockito.when(mockedPolicyIdentifier.applySignatureTransforms(signatureMock)).thenReturn(mockedCertificateDigest);
         
         Mockito.when(this.signingCertificateMock.getChainOfCertificates()).thenReturn(mockedChain);
         Mockito.when(mockedPolicyIdentifier.getX509ValidationConstraints()).thenReturn(mockedX09ValidationContraints);
@@ -547,11 +563,13 @@ public class BasicSignatureValidatorTest {
         this.signatureValidationPoliciesMock = null;
         this.instance = BasicSignatureValidator.getInstance(signatureMock, signerDocumentMock, signingCertificateMock, trustAnchorsMock, allowableValidationPolicyIdsMock, signatureValidationPoliciesMock, localConfigurationMock, validationTimeMock, chainPathVerifierMock);
         
-         /* Initialize local mocked variables */
-        String mockedCertificateDigest = "AB12343BF";
+        /* Initialize local mocked variables */
+        byte[] mockedPolicyHashValue = new byte[]{(byte)5,(byte)5,(byte)5};
+        DigestAlgorithm mockedDigestAlgorithm = mock(DigestAlgorithm.class);
+        String mockedCertificateDigest = "BQUF";
         String mockedCertificateAlgorithm = "RSA-256";
-        SignatureCertificate mockedCertificate = mock(SignatureCertificate.class);
         PolicyIdentifier mockedPolicyIdentifier = mock(PolicyIdentifier.class);
+        SignatureCertificate mockedCertificate = mock(SignatureCertificate.class);
         List<SignatureCertificate> mockedChain = new ArrayList<>();
         mockedChain.add(mockedCertificate);
         X509ValidationConstraints mockedX09ValidationContraints = mock(X509ValidationConstraints.class);
@@ -559,7 +577,7 @@ public class BasicSignatureValidatorTest {
 
         /* Calls to mocks */
         identifySigningCertificateForcePassed(mockedCertificate, mockedCertificateDigest, mockedCertificateAlgorithm);
-        initializeValidationContextForcePassed(mockedPolicyIdentifier, mockedCertificateDigest);
+        initializeValidationContextForcePassed(mockedPolicyIdentifier, mockedCertificateDigest, mockedPolicyHashValue, mockedDigestAlgorithm);
         
         Mockito.when(this.signingCertificateMock.getChainOfCertificates()).thenReturn(mockedChain);
         Mockito.when(mockedPolicyIdentifier.getX509ValidationConstraints()).thenReturn(mockedX09ValidationContraints);
@@ -577,6 +595,1228 @@ public class BasicSignatureValidatorTest {
 
     }
     
+    /*
+    * TEST 10
+    * 
+    * Description:
+    * Verify that a Signing Certificate is identified when Signing Certificate is provided as input, the Signers Certificate is identified from Signature and it is valid
+    * Verify that input policy is not in the allowable policies list and the default validation is used instead
+    * Verify that validation stops when the path validation model of the chain of certificates gives OTHER as a result
+    *
+    * Inputs:
+    * signingCertificateMock is not null
+    * signatureValidationPoliciesMock is null
+    *
+    * Outputs:
+    * validationResult is INDETERMINATE, CERTIFICATE_CHAIN_GENERAL_FAILURE
+    */
+    @Test
+    public void test_10_SigningCertificateFound_InputPolicyInvalid_ChainGeneralFailure() {
+        /* Initialize mocked class variables */
+        this.signingCertificateMock = mock(SignatureCertificate.class);
+        this.signatureValidationPoliciesMock = null;
+        this.instance = BasicSignatureValidator.getInstance(signatureMock, signerDocumentMock, signingCertificateMock, trustAnchorsMock, allowableValidationPolicyIdsMock, signatureValidationPoliciesMock, localConfigurationMock, validationTimeMock, chainPathVerifierMock);
+        
+        /* Initialize local mocked variables */
+        byte[] mockedPolicyHashValue = new byte[]{(byte)5,(byte)5,(byte)5};
+        DigestAlgorithm mockedDigestAlgorithm = mock(DigestAlgorithm.class);
+        String mockedCertificateDigest = "BQUF";
+        String mockedCertificateAlgorithm = "RSA-256";
+        PolicyIdentifier mockedPolicyIdentifier = mock(PolicyIdentifier.class);
+        SignatureCertificate mockedCertificate = mock(SignatureCertificate.class);
+        List<SignatureCertificate> mockedChain = new ArrayList<>();
+        mockedChain.add(mockedCertificate);
+        X509ValidationConstraints mockedX09ValidationContraints = mock(X509ValidationConstraints.class);
+        PathValidationStatus mockedPathValidationStatus = PathValidationStatus.OTHER;
+
+        /* Calls to mocks */
+        identifySigningCertificateForcePassed(mockedCertificate, mockedCertificateDigest, mockedCertificateAlgorithm);
+        initializeValidationContextForcePassed(mockedPolicyIdentifier, mockedCertificateDigest, mockedPolicyHashValue, mockedDigestAlgorithm);
+        
+        Mockito.when(this.signingCertificateMock.getChainOfCertificates()).thenReturn(mockedChain);
+        Mockito.when(mockedPolicyIdentifier.getX509ValidationConstraints()).thenReturn(mockedX09ValidationContraints);
+        Mockito.when(mockedX09ValidationContraints.getValidationModel()).thenReturn(null);
+        Mockito.when(this.chainPathVerifierMock.validateChain(mockedChain, this.validationTimeMock, ValidationModel.CHAIN_MODEL)).thenReturn(mockedPathValidationStatus);
+        
+        /* Function to test */
+        Indication validationResult = this.instance.validate(false);
+        
+        /* Verify function calls */
+        
+        /* Verify tested function output */
+        Assert.assertEquals(Indication.INDETERMINATE, validationResult.getValue());
+        Assert.assertEquals(SubIndication.CERTIFICATE_CHAIN_GENERAL_FAILURE, validationResult.getSubIndication());
+
+    }
+    
+    /*
+    * TEST 11
+    * 
+    * Description:
+    * Verify that a Signing Certificate is identified when Signing Certificate is provided as input, the Signers Certificate is identified from Signature and it is valid
+    * Verify that input policy is not in the allowable policies list and the default validation is used instead
+    * Verify that validation stops when the path validation model of the chain of certificates gives VALID as a result and a certificate in the chain is not fresh because the issuance time is before maximum accepted time
+    *
+    * Inputs:
+    * signingCertificateMock is not null
+    * signatureValidationPoliciesMock is null
+    * validationTimeMock is 2000 milliseconds after standard base time
+    *
+    * Outputs:
+    * validationResult is INDETERMINATE, TRY_LATER
+    */
+    @Test
+    public void test_11_SigningCertificateFound_InputPolicyInvalid_CertificateBeforeMaximumAcceptedTime() {
+        /* Initialize mocked class variables */
+        this.signingCertificateMock = mock(SignatureCertificate.class);
+        this.signatureValidationPoliciesMock = null;
+        this.validationTimeMock = new Date(2000);
+        this.instance = BasicSignatureValidator.getInstance(signatureMock, signerDocumentMock, signingCertificateMock, trustAnchorsMock, allowableValidationPolicyIdsMock, signatureValidationPoliciesMock, localConfigurationMock, validationTimeMock, chainPathVerifierMock);
+        
+        /* Initialize local mocked variables */
+        byte[] mockedPolicyHashValue = new byte[]{(byte)5,(byte)5,(byte)5};
+        DigestAlgorithm mockedDigestAlgorithm = mock(DigestAlgorithm.class);
+        String mockedCertificateDigest = "BQUF";
+        String mockedCertificateAlgorithm = "RSA-256";
+        PolicyIdentifier mockedPolicyIdentifier = mock(PolicyIdentifier.class);
+        SignatureCertificate mockedCertificate = mock(SignatureCertificate.class);
+        List<SignatureCertificate> mockedChain = new ArrayList<>();
+        mockedChain.add(mockedCertificate);
+        X509ValidationConstraints mockedX09ValidationContraints = mock(X509ValidationConstraints.class);
+        PathValidationStatus mockedPathValidationStatus = PathValidationStatus.VALID;
+        Date mockedMaximumAcceptedRevocationFreshness = new Date(1000);
+        Date mockedIssuanceDate = new Date(100);
+        RevocationStatusInformation mockedRevocationStatusInformation = mock(RevocationStatusInformation.class);
+
+        /* Calls to mocks */
+        identifySigningCertificateForcePassed(mockedCertificate, mockedCertificateDigest, mockedCertificateAlgorithm);
+        initializeValidationContextForcePassed(mockedPolicyIdentifier, mockedCertificateDigest, mockedPolicyHashValue, mockedDigestAlgorithm);
+        
+        Mockito.when(this.signingCertificateMock.getChainOfCertificates()).thenReturn(mockedChain);
+        Mockito.when(mockedPolicyIdentifier.getX509ValidationConstraints()).thenReturn(mockedX09ValidationContraints);
+        Mockito.when(mockedX09ValidationContraints.getValidationModel()).thenReturn(null);
+        Mockito.when(this.chainPathVerifierMock.validateChain(mockedChain, this.validationTimeMock, ValidationModel.CHAIN_MODEL)).thenReturn(mockedPathValidationStatus);
+        Mockito.when(mockedX09ValidationContraints.getMaximumAcceptedRevocationFreshness()).thenReturn(mockedMaximumAcceptedRevocationFreshness);
+        Mockito.when(mockedCertificate.getRevocationStatusInformation()).thenReturn(mockedRevocationStatusInformation);
+        Mockito.when(mockedRevocationStatusInformation.getIssuanceDate()).thenReturn(mockedIssuanceDate);
+        Mockito.when(this.signingCertificateMock.getRevocationStatusInformation()).thenReturn(mockedRevocationStatusInformation);
+        
+        /* Function to test */
+        Indication validationResult = this.instance.validate(false);
+        
+        /* Verify function calls */
+        
+        /* Verify tested function output */
+        Assert.assertEquals(Indication.INDETERMINATE, validationResult.getValue());
+        Assert.assertEquals(SubIndication.TRY_LATER, validationResult.getSubIndication());
+
+    }
+    
+    /*
+    * TEST 12
+    * 
+    * Description:
+    * Verify that a Signing Certificate is identified when Signing Certificate is provided as input, the Signers Certificate is identified from Signature and it is valid
+    * Verify that input policy is not in the allowable policies list and the default validation is used instead
+    * Verify that validation stops when the path validation model of the chain of certificates gives VALID as a result, all certificates in the chain are fresh and the chain is not compliant with the constraints
+    *
+    * Inputs:
+    * signingCertificateMock is not null
+    * signatureValidationPoliciesMock is null
+    * validationTimeMock is 2000 milliseconds after standard base time
+    *
+    * Outputs:
+    * validationResult is INDETERMINATE, CHAIN_CONSTRAINTS_FAILURE
+    */
+    @Test
+    public void test_12_SigningCertificateFound_InputPolicyInvalid_CertificateAfterMaximumAcceptedTimeAndChainX509ConstraintsFailure() {
+        /* Initialize mocked class variables */
+        this.signingCertificateMock = mock(SignatureCertificate.class);
+        this.signatureValidationPoliciesMock = null;
+        this.validationTimeMock = new Date(2000);
+        this.instance = BasicSignatureValidator.getInstance(signatureMock, signerDocumentMock, signingCertificateMock, trustAnchorsMock, allowableValidationPolicyIdsMock, signatureValidationPoliciesMock, localConfigurationMock, validationTimeMock, chainPathVerifierMock);
+        
+        /* Initialize local mocked variables */
+        byte[] mockedPolicyHashValue = new byte[]{(byte)5,(byte)5,(byte)5};
+        DigestAlgorithm mockedDigestAlgorithm = mock(DigestAlgorithm.class);
+        String mockedCertificateDigest = "BQUF";
+        String mockedCertificateAlgorithm = "RSA-256";
+        PolicyIdentifier mockedPolicyIdentifier = mock(PolicyIdentifier.class);
+        SignatureCertificate mockedCertificate = mock(SignatureCertificate.class);
+        List<SignatureCertificate> mockedChain = new ArrayList<>();
+        mockedChain.add(mockedCertificate);
+        X509ValidationConstraints mockedX09ValidationContraints = mock(X509ValidationConstraints.class);
+        PathValidationStatus mockedPathValidationStatus = PathValidationStatus.VALID;
+        Date mockedMaximumAcceptedRevocationFreshness = new Date(1000);
+        Date mockedIssuanceDate = new Date(1500);
+        RevocationStatusInformation mockedRevocationStatusInformation = mock(RevocationStatusInformation.class);
+
+        /* Calls to mocks */
+        identifySigningCertificateForcePassed(mockedCertificate, mockedCertificateDigest, mockedCertificateAlgorithm);
+        initializeValidationContextForcePassed(mockedPolicyIdentifier, mockedCertificateDigest, mockedPolicyHashValue, mockedDigestAlgorithm);
+        
+        Mockito.when(this.signingCertificateMock.getChainOfCertificates()).thenReturn(mockedChain);
+        Mockito.when(mockedPolicyIdentifier.getX509ValidationConstraints()).thenReturn(mockedX09ValidationContraints);
+        Mockito.when(mockedX09ValidationContraints.getValidationModel()).thenReturn(null);
+        Mockito.when(this.chainPathVerifierMock.validateChain(mockedChain, this.validationTimeMock, ValidationModel.CHAIN_MODEL)).thenReturn(mockedPathValidationStatus);
+        Mockito.when(mockedX09ValidationContraints.getMaximumAcceptedRevocationFreshness()).thenReturn(mockedMaximumAcceptedRevocationFreshness);
+        Mockito.when(mockedCertificate.getRevocationStatusInformation()).thenReturn(mockedRevocationStatusInformation);
+        Mockito.when(mockedRevocationStatusInformation.getIssuanceDate()).thenReturn(mockedIssuanceDate);
+        Mockito.when(mockedX09ValidationContraints.isChainMatched(mockedChain)).thenReturn(false);
+        
+        /* Function to test */
+        Indication validationResult = this.instance.validate(false);
+        
+        /* Verify function calls */
+        
+        /* Verify tested function output */
+        Assert.assertEquals(Indication.INDETERMINATE, validationResult.getValue());
+        Assert.assertEquals(SubIndication.CHAIN_CONSTRAINTS_FAILURE, validationResult.getSubIndication());
+
+    }
+    
+    /*
+    * TEST 13
+    * 
+    * Description:
+    * Verify that a Signing Certificate is identified when Signing Certificate is provided as input, the Signers Certificate is identified from Signature and it is valid
+    * Verify that input policy is not in the allowable policies list and the default validation is used instead
+    * Verify that validation stops when the path validation model of the chain of certificates gives VALID as a result, and a certificate in the chain is not fresh because the issuance time is before maximum accepted time
+    *
+    * Inputs:
+    * signingCertificateMock is not null
+    * signatureValidationPoliciesMock is null
+    * validationTimeMock is 2000 milliseconds after standard base time
+    *
+    * Outputs:
+    * validationResult is INDETERMINATE, TRY_LATER
+    */
+    @Test
+    public void test_13_SigningCertificateFound_InputPolicyInvalid_CertificateAfterMaximumAcceptedTimeAndNoMaximumAcceptedRevocationFreshness() {
+        /* Initialize mocked class variables */
+        this.signingCertificateMock = mock(SignatureCertificate.class);
+        this.signatureValidationPoliciesMock = null;
+        this.validationTimeMock = new Date(2000);
+        this.instance = BasicSignatureValidator.getInstance(signatureMock, signerDocumentMock, signingCertificateMock, trustAnchorsMock, allowableValidationPolicyIdsMock, signatureValidationPoliciesMock, localConfigurationMock, validationTimeMock, chainPathVerifierMock);
+        
+        /* Initialize local mocked variables */
+        byte[] mockedPolicyHashValue = new byte[]{(byte)5,(byte)5,(byte)5};
+        DigestAlgorithm mockedDigestAlgorithm = mock(DigestAlgorithm.class);
+        String mockedCertificateDigest = "BQUF";
+        String mockedCertificateAlgorithm = "RSA-256";
+        PolicyIdentifier mockedPolicyIdentifier = mock(PolicyIdentifier.class);
+        SignatureCertificate mockedCertificate = mock(SignatureCertificate.class);
+        List<SignatureCertificate> mockedChain = new ArrayList<>();
+        mockedChain.add(mockedCertificate);
+        X509ValidationConstraints mockedX09ValidationContraints = mock(X509ValidationConstraints.class);
+        PathValidationStatus mockedPathValidationStatus = PathValidationStatus.VALID;
+        Date mockedMaximumAcceptedRevocationFreshness = null;
+        Date mockedNextUpdate = new Date(800);
+        Date mockedThisUpdate = new Date(200);
+        Date mockedIssuanceDate = new Date(500);
+        RevocationStatusInformation mockedRevocationStatusInformation = mock(RevocationStatusInformation.class);
+
+        /* Calls to mocks */
+        identifySigningCertificateForcePassed(mockedCertificate, mockedCertificateDigest, mockedCertificateAlgorithm);
+        initializeValidationContextForcePassed(mockedPolicyIdentifier, mockedCertificateDigest, mockedPolicyHashValue, mockedDigestAlgorithm);
+        
+        Mockito.when(this.signingCertificateMock.getChainOfCertificates()).thenReturn(mockedChain);
+        Mockito.when(mockedPolicyIdentifier.getX509ValidationConstraints()).thenReturn(mockedX09ValidationContraints);
+        Mockito.when(mockedX09ValidationContraints.getValidationModel()).thenReturn(null);
+        Mockito.when(this.chainPathVerifierMock.validateChain(mockedChain, this.validationTimeMock, ValidationModel.CHAIN_MODEL)).thenReturn(mockedPathValidationStatus);
+        Mockito.when(mockedX09ValidationContraints.getMaximumAcceptedRevocationFreshness()).thenReturn(mockedMaximumAcceptedRevocationFreshness);
+        Mockito.when(mockedCertificate.getRevocationStatusInformation()).thenReturn(mockedRevocationStatusInformation);
+        Mockito.when(mockedRevocationStatusInformation.getIssuanceDate()).thenReturn(mockedIssuanceDate);
+        Mockito.when(mockedRevocationStatusInformation.getNextUpdate()).thenReturn(mockedNextUpdate);
+        Mockito.when(mockedRevocationStatusInformation.getThisUpdate()).thenReturn(mockedThisUpdate);
+        Mockito.when(this.signingCertificateMock.getRevocationStatusInformation()).thenReturn(mockedRevocationStatusInformation);
+        
+        /* Function to test */
+        Indication validationResult = this.instance.validate(false);
+        
+        /* Verify function calls */
+        
+        /* Verify tested function output */
+        Assert.assertEquals(Indication.INDETERMINATE, validationResult.getValue());
+        Assert.assertEquals(SubIndication.TRY_LATER, validationResult.getSubIndication());
+
+    }
+    
+    /*
+    * TEST 14
+    * 
+    * Description:
+    * Verify that a Signing Certificate is identified when Signing Certificate is provided as input, the Signers Certificate is identified from Signature and it is valid
+    * Verify that input policy is not in the allowable policies list and the default validation is used instead
+    * Verify that validation stops when the path validation model of the chain of certificates gives VALID as a result, all certificates in the chain are fresh and the chain is not compliant with the cryptographic constraints
+    *
+    * Inputs:
+    * signingCertificateMock is not null
+    * signatureValidationPoliciesMock is null
+    * validationTimeMock is 2000 milliseconds after standard base time
+    *
+    * Outputs:
+    * validationResult is INDETERMINATE, CRYPTO_CONSTRAINTS_FAILURE_NO_POE
+    */
+    @Test
+    public void test_14_SigningCertificateFound_InputPolicyInvalid_CertificateBeforeMaximumAcceptedTimeAndNoMaximumAcceptedRevocationFreshnessAndChainCryptoConstraintsFailure() {
+        /* Initialize mocked class variables */
+        this.signingCertificateMock = mock(SignatureCertificate.class);
+        this.signatureValidationPoliciesMock = null;
+        this.validationTimeMock = new Date(2000);
+        this.instance = BasicSignatureValidator.getInstance(signatureMock, signerDocumentMock, signingCertificateMock, trustAnchorsMock, allowableValidationPolicyIdsMock, signatureValidationPoliciesMock, localConfigurationMock, validationTimeMock, chainPathVerifierMock);
+        
+         /* Initialize local mocked variables */
+         byte[] mockedPolicyHashValue = new byte[]{(byte)5,(byte)5,(byte)5};
+        DigestAlgorithm mockedDigestAlgorithm = mock(DigestAlgorithm.class);
+        String mockedCertificateDigest = "BQUF";
+        String mockedCertificateAlgorithm = "RSA-256";
+        PolicyIdentifier mockedPolicyIdentifier = mock(PolicyIdentifier.class);
+        SignatureCertificate mockedCertificate = mock(SignatureCertificate.class);
+        List<SignatureCertificate> mockedChain = new ArrayList<>();
+        mockedChain.add(mockedCertificate);
+        X509ValidationConstraints mockedX09ValidationContraints = mock(X509ValidationConstraints.class);
+        CryptographicConstraints mockedCryptographicConstraints = mock(CryptographicConstraints.class);
+        PathValidationStatus mockedPathValidationStatus = PathValidationStatus.VALID;
+        Date mockedMaximumAcceptedRevocationFreshness = null;
+        Date mockedNextUpdate = new Date(800);
+        Date mockedThisUpdate = new Date(200);
+        Date mockedIssuanceDate = new Date(1500);
+        RevocationStatusInformation mockedRevocationStatusInformation = mock(RevocationStatusInformation.class);
+
+        /* Calls to mocks */
+        identifySigningCertificateForcePassed(mockedCertificate, mockedCertificateDigest, mockedCertificateAlgorithm);
+        initializeValidationContextForcePassed(mockedPolicyIdentifier, mockedCertificateDigest, mockedPolicyHashValue, mockedDigestAlgorithm);
+        
+        Mockito.when(this.signingCertificateMock.getChainOfCertificates()).thenReturn(mockedChain);
+        Mockito.when(mockedPolicyIdentifier.getX509ValidationConstraints()).thenReturn(mockedX09ValidationContraints);
+        Mockito.when(mockedX09ValidationContraints.getValidationModel()).thenReturn(null);
+        Mockito.when(this.chainPathVerifierMock.validateChain(mockedChain, this.validationTimeMock, ValidationModel.CHAIN_MODEL)).thenReturn(mockedPathValidationStatus);
+        Mockito.when(mockedX09ValidationContraints.getMaximumAcceptedRevocationFreshness()).thenReturn(mockedMaximumAcceptedRevocationFreshness);
+        Mockito.when(mockedCertificate.getRevocationStatusInformation()).thenReturn(mockedRevocationStatusInformation);
+        Mockito.when(mockedRevocationStatusInformation.getIssuanceDate()).thenReturn(mockedIssuanceDate);
+        Mockito.when(mockedRevocationStatusInformation.getNextUpdate()).thenReturn(mockedNextUpdate);
+        Mockito.when(mockedRevocationStatusInformation.getThisUpdate()).thenReturn(mockedThisUpdate);
+        Mockito.when(mockedX09ValidationContraints.isChainMatched(mockedChain)).thenReturn(true);
+        Mockito.when(mockedPolicyIdentifier.getCryptographicConstraints()).thenReturn(mockedCryptographicConstraints);
+        Mockito.when(mockedCryptographicConstraints.isChainMatched(mockedChain)).thenReturn(false);
+        
+        /* Function to test */
+        Indication validationResult = this.instance.validate(false);
+        
+        /* Verify function calls */
+        
+        /* Verify tested function output */
+        Assert.assertEquals(Indication.INDETERMINATE, validationResult.getValue());
+        Assert.assertEquals(SubIndication.CRYPTO_CONSTRAINTS_FAILURE_NO_POE, validationResult.getSubIndication());
+
+    }
+    
+    /*
+    * TEST 15
+    * 
+    * Description:
+    * Verify that a Signing Certificate is identified when Signing Certificate is provided as input, the Signers Certificate is identified from Signature and it is valid
+    * Verify that input policy is not in the allowable policies list and the default validation is used instead
+    * Verify that validation stops when the path validation model of the chain of certificates gives VALID as a result and a certificate in the chain has no issuance time.
+    *
+    * Inputs:
+    * signingCertificateMock is not null
+    * signatureValidationPoliciesMock is null
+    * validationTimeMock is 2000 milliseconds after standard base time
+    *
+    * Outputs:
+    * validationResult is INDETERMINATE, TRY_LATER
+    */
+    @Test
+    public void test_15_SigningCertificateFound_InputPolicyInvalid_CertificateNoIssuanceTime() {
+        /* Initialize mocked class variables */
+        this.signingCertificateMock = mock(SignatureCertificate.class);
+        this.signatureValidationPoliciesMock = null;
+        this.validationTimeMock = new Date(2000);
+        this.instance = BasicSignatureValidator.getInstance(signatureMock, signerDocumentMock, signingCertificateMock, trustAnchorsMock, allowableValidationPolicyIdsMock, signatureValidationPoliciesMock, localConfigurationMock, validationTimeMock, chainPathVerifierMock);
+        
+         /* Initialize local mocked variables */
+         byte[] mockedPolicyHashValue = new byte[]{(byte)5,(byte)5,(byte)5};
+        DigestAlgorithm mockedDigestAlgorithm = mock(DigestAlgorithm.class);
+        String mockedCertificateDigest = "BQUF";
+        String mockedCertificateAlgorithm = "RSA-256";
+        PolicyIdentifier mockedPolicyIdentifier = mock(PolicyIdentifier.class);
+        SignatureCertificate mockedCertificate = mock(SignatureCertificate.class);
+        List<SignatureCertificate> mockedChain = new ArrayList<>();
+        mockedChain.add(mockedCertificate);
+        X509ValidationConstraints mockedX09ValidationContraints = mock(X509ValidationConstraints.class);
+        PathValidationStatus mockedPathValidationStatus = PathValidationStatus.VALID;
+        Date mockedMaximumAcceptedRevocationFreshness = new Date(1000);
+        Date mockedIssuanceDate = null;
+        RevocationStatusInformation mockedRevocationStatusInformation = mock(RevocationStatusInformation.class);
+
+        /* Calls to mocks */
+        identifySigningCertificateForcePassed(mockedCertificate, mockedCertificateDigest, mockedCertificateAlgorithm);
+        initializeValidationContextForcePassed(mockedPolicyIdentifier, mockedCertificateDigest, mockedPolicyHashValue, mockedDigestAlgorithm);
+        
+        Mockito.when(this.signingCertificateMock.getChainOfCertificates()).thenReturn(mockedChain);
+        Mockito.when(mockedPolicyIdentifier.getX509ValidationConstraints()).thenReturn(mockedX09ValidationContraints);
+        Mockito.when(mockedX09ValidationContraints.getValidationModel()).thenReturn(null);
+        Mockito.when(this.chainPathVerifierMock.validateChain(mockedChain, this.validationTimeMock, ValidationModel.CHAIN_MODEL)).thenReturn(mockedPathValidationStatus);
+        Mockito.when(mockedX09ValidationContraints.getMaximumAcceptedRevocationFreshness()).thenReturn(mockedMaximumAcceptedRevocationFreshness);
+        Mockito.when(mockedCertificate.getRevocationStatusInformation()).thenReturn(mockedRevocationStatusInformation);
+        Mockito.when(mockedRevocationStatusInformation.getIssuanceDate()).thenReturn(mockedIssuanceDate);
+        Mockito.when(this.signingCertificateMock.getRevocationStatusInformation()).thenReturn(mockedRevocationStatusInformation);
+        
+        /* Function to test */
+        Indication validationResult = this.instance.validate(false);
+        
+        /* Verify function calls */
+        
+        /* Verify tested function output */
+        Assert.assertEquals(Indication.INDETERMINATE, validationResult.getValue());
+        Assert.assertEquals(SubIndication.TRY_LATER, validationResult.getSubIndication());
+
+    }
+    
+    /*
+    * TEST 16
+    * 
+    * Description:
+    * Verify that a Signing Certificate is identified when Signing Certificate is provided as input, the Signers Certificate is identified from Signature and it is valid
+    * Verify that input policy is not in the allowable policies list and the default validation is used instead
+    * Verify that validation stops when the path validation model of the chain of certificates gives VALID as a result, a certificate in the chain has no issuance time and there is no maximum accepted revocation freshness.
+    *
+    * Inputs:
+    * signingCertificateMock is not null
+    * signatureValidationPoliciesMock is null
+    * validationTimeMock is 2000 milliseconds after standard base time
+    *
+    * Outputs:
+    * validationResult is INDETERMINATE, TRY_LATER
+    */
+    @Test
+    public void test_16_SigningCertificateFound_InputPolicyInvalid_CertificateNoMaximumRevocationFreshnessAndNoIssuanceTime() {
+        /* Initialize mocked class variables */
+        this.signingCertificateMock = mock(SignatureCertificate.class);
+        this.signatureValidationPoliciesMock = null;
+        this.validationTimeMock = new Date(2000);
+        this.instance = BasicSignatureValidator.getInstance(signatureMock, signerDocumentMock, signingCertificateMock, trustAnchorsMock, allowableValidationPolicyIdsMock, signatureValidationPoliciesMock, localConfigurationMock, validationTimeMock, chainPathVerifierMock);
+        
+         /* Initialize local mocked variables */
+         byte[] mockedPolicyHashValue = new byte[]{(byte)5,(byte)5,(byte)5};
+        DigestAlgorithm mockedDigestAlgorithm = mock(DigestAlgorithm.class);
+        String mockedCertificateDigest = "BQUF";
+        String mockedCertificateAlgorithm = "RSA-256";
+        PolicyIdentifier mockedPolicyIdentifier = mock(PolicyIdentifier.class);
+        SignatureCertificate mockedCertificate = mock(SignatureCertificate.class);
+        List<SignatureCertificate> mockedChain = new ArrayList<>();
+        mockedChain.add(mockedCertificate);
+        X509ValidationConstraints mockedX09ValidationContraints = mock(X509ValidationConstraints.class);
+        PathValidationStatus mockedPathValidationStatus = PathValidationStatus.VALID;
+        Date mockedMaximumAcceptedRevocationFreshness = null;
+        Date mockedIssuanceDate = null;
+        RevocationStatusInformation mockedRevocationStatusInformation = mock(RevocationStatusInformation.class);
+
+        /* Calls to mocks */
+        identifySigningCertificateForcePassed(mockedCertificate, mockedCertificateDigest, mockedCertificateAlgorithm);
+        initializeValidationContextForcePassed(mockedPolicyIdentifier, mockedCertificateDigest, mockedPolicyHashValue, mockedDigestAlgorithm);
+        
+        Mockito.when(this.signingCertificateMock.getChainOfCertificates()).thenReturn(mockedChain);
+        Mockito.when(mockedPolicyIdentifier.getX509ValidationConstraints()).thenReturn(mockedX09ValidationContraints);
+        Mockito.when(mockedX09ValidationContraints.getValidationModel()).thenReturn(null);
+        Mockito.when(this.chainPathVerifierMock.validateChain(mockedChain, this.validationTimeMock, ValidationModel.CHAIN_MODEL)).thenReturn(mockedPathValidationStatus);
+        Mockito.when(mockedX09ValidationContraints.getMaximumAcceptedRevocationFreshness()).thenReturn(mockedMaximumAcceptedRevocationFreshness);
+        Mockito.when(mockedCertificate.getRevocationStatusInformation()).thenReturn(mockedRevocationStatusInformation);
+        Mockito.when(mockedRevocationStatusInformation.getIssuanceDate()).thenReturn(mockedIssuanceDate);
+        Mockito.when(this.signingCertificateMock.getRevocationStatusInformation()).thenReturn(mockedRevocationStatusInformation);
+        
+        /* Function to test */
+        Indication validationResult = this.instance.validate(false);
+        
+        /* Verify function calls */
+        
+        /* Verify tested function output */
+        Assert.assertEquals(Indication.INDETERMINATE, validationResult.getValue());
+        Assert.assertEquals(SubIndication.TRY_LATER, validationResult.getSubIndication());
+
+    }
+    
+    /*
+    * TEST 17
+    * 
+    * Description:
+    * Verify that a Signing Certificate is identified when Signing Certificate is provided as input, the Signers Certificate is identified from Signature and it is valid
+    * Verify that input policy is not in the allowable policies list and the default validation is used instead
+    * Verify that validation stops when the path validation model of the chain of certificates gives VALID as a result, a certificate in the chain has no NextUpdate parameter and there is no maximum accepted revocation freshness.
+    *
+    * Inputs:
+    * signingCertificateMock is not null
+    * signatureValidationPoliciesMock is null
+    * validationTimeMock is 2000 milliseconds after standard base time
+    *
+    * Outputs:
+    * validationResult is INDETERMINATE, TRY_LATER
+    */
+    @Test
+    public void test_17_SigningCertificateFound_InputPolicyInvalid_CertificateNoMaximumRevocationFreshnessAndNoNextUpdate() {
+        /* Initialize mocked class variables */
+        this.signingCertificateMock = mock(SignatureCertificate.class);
+        this.signatureValidationPoliciesMock = null;
+        this.validationTimeMock = new Date(2000);
+        this.instance = BasicSignatureValidator.getInstance(signatureMock, signerDocumentMock, signingCertificateMock, trustAnchorsMock, allowableValidationPolicyIdsMock, signatureValidationPoliciesMock, localConfigurationMock, validationTimeMock, chainPathVerifierMock);
+        
+         /* Initialize local mocked variables */
+         byte[] mockedPolicyHashValue = new byte[]{(byte)5,(byte)5,(byte)5};
+        DigestAlgorithm mockedDigestAlgorithm = mock(DigestAlgorithm.class);
+        String mockedCertificateDigest = "BQUF";
+        String mockedCertificateAlgorithm = "RSA-256";
+        PolicyIdentifier mockedPolicyIdentifier = mock(PolicyIdentifier.class);
+        SignatureCertificate mockedCertificate = mock(SignatureCertificate.class);
+        List<SignatureCertificate> mockedChain = new ArrayList<>();
+        mockedChain.add(mockedCertificate);
+        X509ValidationConstraints mockedX09ValidationContraints = mock(X509ValidationConstraints.class);
+        PathValidationStatus mockedPathValidationStatus = PathValidationStatus.VALID;
+        Date mockedMaximumAcceptedRevocationFreshness = null;
+        Date mockedIssuanceDate = new Date(1000);
+        Date mockedNextUpdate = null;
+        RevocationStatusInformation mockedRevocationStatusInformation = mock(RevocationStatusInformation.class);
+
+        /* Calls to mocks */
+        identifySigningCertificateForcePassed(mockedCertificate, mockedCertificateDigest, mockedCertificateAlgorithm);
+        initializeValidationContextForcePassed(mockedPolicyIdentifier, mockedCertificateDigest, mockedPolicyHashValue, mockedDigestAlgorithm);
+        
+        Mockito.when(this.signingCertificateMock.getChainOfCertificates()).thenReturn(mockedChain);
+        Mockito.when(mockedPolicyIdentifier.getX509ValidationConstraints()).thenReturn(mockedX09ValidationContraints);
+        Mockito.when(mockedX09ValidationContraints.getValidationModel()).thenReturn(null);
+        Mockito.when(this.chainPathVerifierMock.validateChain(mockedChain, this.validationTimeMock, ValidationModel.CHAIN_MODEL)).thenReturn(mockedPathValidationStatus);
+        Mockito.when(mockedX09ValidationContraints.getMaximumAcceptedRevocationFreshness()).thenReturn(mockedMaximumAcceptedRevocationFreshness);
+        Mockito.when(mockedCertificate.getRevocationStatusInformation()).thenReturn(mockedRevocationStatusInformation);
+        Mockito.when(mockedRevocationStatusInformation.getIssuanceDate()).thenReturn(mockedIssuanceDate);
+        Mockito.when(mockedRevocationStatusInformation.getNextUpdate()).thenReturn(mockedNextUpdate);
+        Mockito.when(this.signingCertificateMock.getRevocationStatusInformation()).thenReturn(mockedRevocationStatusInformation);
+        
+        /* Function to test */
+        Indication validationResult = this.instance.validate(false);
+        
+        /* Verify function calls */
+        
+        /* Verify tested function output */
+        Assert.assertEquals(Indication.INDETERMINATE, validationResult.getValue());
+        Assert.assertEquals(SubIndication.TRY_LATER, validationResult.getSubIndication());
+
+    }
+    
+    /*
+    * TEST 18
+    * 
+    * Description:
+    * Verify that a Signing Certificate is identified when Signing Certificate is provided as input, the Signers Certificate is identified from Signature and it is valid
+    * Verify that input policy is not in the allowable policies list and the default validation is used instead
+    * Verify that validation stops when the path validation model of the chain of certificates gives VALID as a result, a certificate in the chain has no ThisUpdate parameter and there is no maximum accepted revocation freshness.
+    *
+    * Inputs:
+    * signingCertificateMock is not null
+    * signatureValidationPoliciesMock is null
+    * validationTimeMock is 2000 milliseconds after standard base time
+    *
+    * Outputs:
+    * validationResult is INDETERMINATE, TRY_LATER
+    */
+    @Test
+    public void test_18_SigningCertificateFound_InputPolicyInvalid_CertificateNoMaximumRevocationFreshnessAndNoThisUpdate() {
+        /* Initialize mocked class variables */
+        this.signingCertificateMock = mock(SignatureCertificate.class);
+        this.signatureValidationPoliciesMock = null;
+        this.validationTimeMock = new Date(2000);
+        this.instance = BasicSignatureValidator.getInstance(signatureMock, signerDocumentMock, signingCertificateMock, trustAnchorsMock, allowableValidationPolicyIdsMock, signatureValidationPoliciesMock, localConfigurationMock, validationTimeMock, chainPathVerifierMock);
+        
+         /* Initialize local mocked variables */
+         byte[] mockedPolicyHashValue = new byte[]{(byte)5,(byte)5,(byte)5};
+        DigestAlgorithm mockedDigestAlgorithm = mock(DigestAlgorithm.class);
+        String mockedCertificateDigest = "BQUF";
+        String mockedCertificateAlgorithm = "RSA-256";
+        PolicyIdentifier mockedPolicyIdentifier = mock(PolicyIdentifier.class);
+        SignatureCertificate mockedCertificate = mock(SignatureCertificate.class);
+        List<SignatureCertificate> mockedChain = new ArrayList<>();
+        mockedChain.add(mockedCertificate);
+        X509ValidationConstraints mockedX09ValidationContraints = mock(X509ValidationConstraints.class);
+        PathValidationStatus mockedPathValidationStatus = PathValidationStatus.VALID;
+        Date mockedMaximumAcceptedRevocationFreshness = null;
+        Date mockedIssuanceDate = new Date(1000);
+        Date mockedNextUpdate = new Date(200);
+        Date mockedThisUpdate = null;
+        RevocationStatusInformation mockedRevocationStatusInformation = mock(RevocationStatusInformation.class);
+
+        /* Calls to mocks */
+        identifySigningCertificateForcePassed(mockedCertificate, mockedCertificateDigest, mockedCertificateAlgorithm);
+        initializeValidationContextForcePassed(mockedPolicyIdentifier, mockedCertificateDigest, mockedPolicyHashValue, mockedDigestAlgorithm);
+        
+        Mockito.when(this.signingCertificateMock.getChainOfCertificates()).thenReturn(mockedChain);
+        Mockito.when(mockedPolicyIdentifier.getX509ValidationConstraints()).thenReturn(mockedX09ValidationContraints);
+        Mockito.when(mockedX09ValidationContraints.getValidationModel()).thenReturn(null);
+        Mockito.when(this.chainPathVerifierMock.validateChain(mockedChain, this.validationTimeMock, ValidationModel.CHAIN_MODEL)).thenReturn(mockedPathValidationStatus);
+        Mockito.when(mockedX09ValidationContraints.getMaximumAcceptedRevocationFreshness()).thenReturn(mockedMaximumAcceptedRevocationFreshness);
+        Mockito.when(mockedCertificate.getRevocationStatusInformation()).thenReturn(mockedRevocationStatusInformation);
+        Mockito.when(mockedRevocationStatusInformation.getIssuanceDate()).thenReturn(mockedIssuanceDate);
+        Mockito.when(mockedRevocationStatusInformation.getNextUpdate()).thenReturn(mockedNextUpdate);
+        Mockito.when(mockedRevocationStatusInformation.getThisUpdate()).thenReturn(mockedThisUpdate);
+        Mockito.when(this.signingCertificateMock.getRevocationStatusInformation()).thenReturn(mockedRevocationStatusInformation);
+        
+        /* Function to test */
+        Indication validationResult = this.instance.validate(false);
+        
+        /* Verify function calls */
+        
+        /* Verify tested function output */
+        Assert.assertEquals(Indication.INDETERMINATE, validationResult.getValue());
+        Assert.assertEquals(SubIndication.TRY_LATER, validationResult.getSubIndication());
+
+    }
+    
+    /*
+    * TEST 19
+    * 
+    * Description:
+    * Verify that a Signing Certificate is identified when Signing Certificate is provided as input, the Signers Certificate is identified from Signature and it is valid
+    * Verify that input policy is not in the allowable policies list and the default validation is used instead
+    * Verify that validation stops when the path validation model of the chain of certificates gives VALID as a result, and the issuance time plus validity range is before validation time
+    *
+    * Inputs:
+    * signingCertificateMock is not null
+    * signatureValidationPoliciesMock is null
+    * validationTimeMock is 2000 milliseconds after standard base time
+    *
+    * Outputs:
+    * validationResult is INDETERMINATE, OUT_OF_BOUNDS_NO_POE
+    */
+    @Test
+    public void test_19_SigningCertificateFound_InputPolicyInvalid_InvalidValidityRange() {
+        /* Initialize mocked class variables */
+        this.signingCertificateMock = mock(SignatureCertificate.class);
+        this.signatureValidationPoliciesMock = null;
+        this.validationTimeMock = new Date(2000);
+        this.instance = BasicSignatureValidator.getInstance(signatureMock, signerDocumentMock, signingCertificateMock, trustAnchorsMock, allowableValidationPolicyIdsMock, signatureValidationPoliciesMock, localConfigurationMock, validationTimeMock, chainPathVerifierMock);
+        
+         /* Initialize local mocked variables */
+         byte[] mockedPolicyHashValue = new byte[]{(byte)5,(byte)5,(byte)5};
+        DigestAlgorithm mockedDigestAlgorithm = mock(DigestAlgorithm.class);
+        String mockedCertificateDigest = "BQUF";
+        String mockedCertificateAlgorithm = "RSA-256";
+        PolicyIdentifier mockedPolicyIdentifier = mock(PolicyIdentifier.class);
+        SignatureCertificate mockedCertificate = mock(SignatureCertificate.class);
+        List<SignatureCertificate> mockedChain = new ArrayList<>();
+        mockedChain.add(mockedCertificate);
+        X509ValidationConstraints mockedX09ValidationContraints = mock(X509ValidationConstraints.class);
+        CryptographicConstraints mockedCryptographicConstraints = mock(CryptographicConstraints.class);
+        PathValidationStatus mockedPathValidationStatus = PathValidationStatus.VALID;
+        Date mockedMaximumAcceptedRevocationFreshness = new Date(1000);
+        Date mockedIssuanceDate = new Date(1500);
+        RevocationStatusInformation mockedRevocationStatusInformation = mock(RevocationStatusInformation.class);
+        Date mockedValidityRange = new Date(400);
+
+        /* Calls to mocks */
+        identifySigningCertificateForcePassed(mockedCertificate, mockedCertificateDigest, mockedCertificateAlgorithm);
+        initializeValidationContextForcePassed(mockedPolicyIdentifier, mockedCertificateDigest, mockedPolicyHashValue, mockedDigestAlgorithm);
+        
+        Mockito.when(this.signingCertificateMock.getChainOfCertificates()).thenReturn(mockedChain);
+        Mockito.when(mockedPolicyIdentifier.getX509ValidationConstraints()).thenReturn(mockedX09ValidationContraints);
+        Mockito.when(mockedX09ValidationContraints.getValidationModel()).thenReturn(null);
+        Mockito.when(this.chainPathVerifierMock.validateChain(mockedChain, this.validationTimeMock, ValidationModel.CHAIN_MODEL)).thenReturn(mockedPathValidationStatus);
+        Mockito.when(mockedX09ValidationContraints.getMaximumAcceptedRevocationFreshness()).thenReturn(mockedMaximumAcceptedRevocationFreshness);
+        Mockito.when(mockedCertificate.getRevocationStatusInformation()).thenReturn(mockedRevocationStatusInformation);
+        Mockito.when(mockedRevocationStatusInformation.getIssuanceDate()).thenReturn(mockedIssuanceDate);
+        Mockito.when(mockedX09ValidationContraints.isChainMatched(mockedChain)).thenReturn(true);
+        Mockito.when(mockedPolicyIdentifier.getCryptographicConstraints()).thenReturn(mockedCryptographicConstraints);
+        Mockito.when(mockedCryptographicConstraints.isChainMatched(mockedChain)).thenReturn(true);
+        Mockito.when(mockedX09ValidationContraints.getSigningCertificateValidityRange()).thenReturn(mockedValidityRange);
+        Mockito.when(this.signingCertificateMock.getRevocationStatusInformation()).thenReturn(mockedRevocationStatusInformation);
+        
+        /* Function to test */
+        Indication validationResult = this.instance.validate(false);
+        
+        /* Verify function calls */
+        
+        /* Verify tested function output */
+        Assert.assertEquals(Indication.INDETERMINATE, validationResult.getValue());
+        Assert.assertEquals(SubIndication.OUT_OF_BOUNDS_NO_POE, validationResult.getSubIndication());
+
+    }
+    
+    /*
+    * TEST 20
+    * 
+    * Description:
+    * Verify that a Signing Certificate is identified when Signing Certificate is provided as input, the Signers Certificate is identified from Signature and it is valid
+    * Verify that input policy is not in the allowable policies list and the default validation is used instead
+    * Verify that the chain of certificates is valid
+    * Verify that validation stops when signed data object properties are not obtainable
+    *
+    * Inputs:
+    * signingCertificateMock is not null
+    * signatureValidationPoliciesMock is null
+    * validationTimeMock is 2000 milliseconds after standard base time
+    *
+    * Outputs:
+    * validationResult is INDETERMINATE, SIGNED_DATA_NOT_FOUND
+    */
+    @Test
+    public void test_20_SigningCertificateFound_InputPolicyInvalid_ValidChain_NoDataObjectProperties() {
+        /* Initialize mocked class variables */
+        this.signingCertificateMock = mock(SignatureCertificate.class);
+        this.signatureValidationPoliciesMock = null;
+        this.validationTimeMock = new Date(2000);
+        this.instance = BasicSignatureValidator.getInstance(signatureMock, signerDocumentMock, signingCertificateMock, trustAnchorsMock, allowableValidationPolicyIdsMock, signatureValidationPoliciesMock, localConfigurationMock, validationTimeMock, chainPathVerifierMock);
+        
+        /* Initialize local mocked variables */
+        byte[] mockedPolicyHashValue = new byte[]{(byte)5,(byte)5,(byte)5};
+        DigestAlgorithm mockedDigestAlgorithm = mock(DigestAlgorithm.class);
+        String mockedCertificateDigest = "BQUF";
+        String mockedCertificateAlgorithm = "RSA-256";
+        PolicyIdentifier mockedPolicyIdentifier = mock(PolicyIdentifier.class);
+        SignatureCertificate mockedCertificate = mock(SignatureCertificate.class);
+        List<SignatureCertificate> mockedChain = new ArrayList<>();
+        mockedChain.add(mockedCertificate);
+        X509ValidationConstraints mockedX09ValidationContraints = mock(X509ValidationConstraints.class);
+        CryptographicConstraints mockedCryptographicConstraints = mock(CryptographicConstraints.class);
+        PathValidationStatus mockedPathValidationStatus = PathValidationStatus.VALID;
+        Date mockedMaximumAcceptedRevocationFreshness = new Date(1000);
+        Date mockedIssuanceDate = new Date(1500);
+        RevocationStatusInformation mockedRevocationStatusInformation = mock(RevocationStatusInformation.class);
+        Date mockedValidityRange = new Date(600);
+        SignedProperties mockedSignedProperties = mock(SignedProperties.class);
+        SignedDataObjectProperties mockedSignedDataObjectProperties = null;
+
+        /* Calls to mocks */
+        identifySigningCertificateForcePassed(mockedCertificate, mockedCertificateDigest, mockedCertificateAlgorithm);
+        initializeValidationContextForcePassed(mockedPolicyIdentifier, mockedCertificateDigest, mockedPolicyHashValue, mockedDigestAlgorithm);
+        
+        Mockito.when(this.signingCertificateMock.getChainOfCertificates()).thenReturn(mockedChain);
+        Mockito.when(mockedPolicyIdentifier.getX509ValidationConstraints()).thenReturn(mockedX09ValidationContraints);
+        Mockito.when(mockedX09ValidationContraints.getValidationModel()).thenReturn(null);
+        Mockito.when(this.chainPathVerifierMock.validateChain(mockedChain, this.validationTimeMock, ValidationModel.CHAIN_MODEL)).thenReturn(mockedPathValidationStatus);
+        Mockito.when(mockedX09ValidationContraints.getMaximumAcceptedRevocationFreshness()).thenReturn(mockedMaximumAcceptedRevocationFreshness);
+        Mockito.when(mockedCertificate.getRevocationStatusInformation()).thenReturn(mockedRevocationStatusInformation);
+        Mockito.when(mockedRevocationStatusInformation.getIssuanceDate()).thenReturn(mockedIssuanceDate);
+        Mockito.when(mockedX09ValidationContraints.isChainMatched(mockedChain)).thenReturn(true);
+        Mockito.when(mockedPolicyIdentifier.getCryptographicConstraints()).thenReturn(mockedCryptographicConstraints);
+        Mockito.when(mockedCryptographicConstraints.isChainMatched(mockedChain)).thenReturn(true);
+        Mockito.when(mockedX09ValidationContraints.getSigningCertificateValidityRange()).thenReturn(mockedValidityRange);
+        Mockito.when(this.signingCertificateMock.getRevocationStatusInformation()).thenReturn(mockedRevocationStatusInformation);
+        Mockito.when(this.signatureMock.getSignedProperties()).thenReturn(mockedSignedProperties);
+        Mockito.when(mockedSignedProperties.getSignedDataObjectProperties()).thenReturn(mockedSignedDataObjectProperties);
+        
+        /* Function to test */
+        Indication validationResult = this.instance.validate(false);
+        
+        /* Verify function calls */
+        
+        /* Verify tested function output */
+        Assert.assertEquals(Indication.INDETERMINATE, validationResult.getValue());
+        Assert.assertEquals(SubIndication.SIGNED_DATA_NOT_FOUND, validationResult.getSubIndication());
+
+    }
+    
+    /*
+    * TEST 21
+    * 
+    * Description:
+    * Verify that a Signing Certificate is identified when Signing Certificate is provided as input, the Signers Certificate is identified from Signature and it is valid
+    * Verify that input policy is not in the allowable policies list and the default validation is used instead
+    * Verify that the chain of certificates is valid
+    * Verify that validation stops when signed data objects are not obtainable
+    *
+    * Inputs:
+    * signingCertificateMock is not null
+    * signatureValidationPoliciesMock is null
+    * validationTimeMock is 2000 milliseconds after standard base time
+    *
+    * Outputs:
+    * validationResult is INDETERMINATE, SIGNED_DATA_NOT_FOUND
+    */
+    @Test
+    public void test_21_SigningCertificateFound_InputPolicyInvalid_ValidChain_NoDataObjects() {
+        /* Initialize mocked class variables */
+        this.signingCertificateMock = mock(SignatureCertificate.class);
+        this.signatureValidationPoliciesMock = null;
+        this.validationTimeMock = new Date(2000);
+        this.instance = BasicSignatureValidator.getInstance(signatureMock, signerDocumentMock, signingCertificateMock, trustAnchorsMock, allowableValidationPolicyIdsMock, signatureValidationPoliciesMock, localConfigurationMock, validationTimeMock, chainPathVerifierMock);
+        
+        /* Initialize local mocked variables */
+        byte[] mockedPolicyHashValue = new byte[]{(byte)5,(byte)5,(byte)5};
+        DigestAlgorithm mockedDigestAlgorithm = mock(DigestAlgorithm.class);
+        String mockedCertificateDigest = "BQUF";
+        String mockedCertificateAlgorithm = "RSA-256";
+        PolicyIdentifier mockedPolicyIdentifier = mock(PolicyIdentifier.class);
+        SignatureCertificate mockedCertificate = mock(SignatureCertificate.class);
+        List<SignatureCertificate> mockedChain = new ArrayList<>();
+        mockedChain.add(mockedCertificate);
+        X509ValidationConstraints mockedX09ValidationContraints = mock(X509ValidationConstraints.class);
+        CryptographicConstraints mockedCryptographicConstraints = mock(CryptographicConstraints.class);
+        PathValidationStatus mockedPathValidationStatus = PathValidationStatus.VALID;
+        Date mockedMaximumAcceptedRevocationFreshness = new Date(1000);
+        Date mockedIssuanceDate = new Date(1500);
+        RevocationStatusInformation mockedRevocationStatusInformation = mock(RevocationStatusInformation.class);
+        Date mockedValidityRange = new Date(600);
+        SignedProperties mockedSignedProperties = mock(SignedProperties.class);
+        SignedDataObjectProperties mockedSignedDataObjectProperties = mock(SignedDataObjectProperties.class);
+        List<SignedDataObject> mockedSignedDataObjects = null;
+
+        /* Calls to mocks */
+        identifySigningCertificateForcePassed(mockedCertificate, mockedCertificateDigest, mockedCertificateAlgorithm);
+        initializeValidationContextForcePassed(mockedPolicyIdentifier, mockedCertificateDigest, mockedPolicyHashValue, mockedDigestAlgorithm);
+        validateX509CertificateForcePassed(mockedChain, mockedPolicyIdentifier, mockedX09ValidationContraints, mockedPathValidationStatus, mockedMaximumAcceptedRevocationFreshness, mockedCertificate, mockedRevocationStatusInformation, mockedIssuanceDate, mockedCryptographicConstraints, mockedValidityRange);
+        
+        Mockito.when(this.signatureMock.getSignedProperties()).thenReturn(mockedSignedProperties);
+        Mockito.when(mockedSignedProperties.getSignedDataObjectProperties()).thenReturn(mockedSignedDataObjectProperties);
+        Mockito.when(mockedSignedDataObjectProperties.getSignedDataObjects()).thenReturn(mockedSignedDataObjects);
+       
+        
+        /* Function to test */
+        Indication validationResult = this.instance.validate(false);
+        
+        /* Verify function calls */
+        
+        /* Verify tested function output */
+        Assert.assertEquals(Indication.INDETERMINATE, validationResult.getValue());
+        Assert.assertEquals(SubIndication.SIGNED_DATA_NOT_FOUND, validationResult.getSubIndication());
+
+    }
+    
+    /*
+    * TEST 22
+    * 
+    * Description:
+    * Verify that a Signing Certificate is identified when Signing Certificate is provided as input, the Signers Certificate is identified from Signature and it is valid
+    * Verify that input policy is not in the allowable policies list and the default validation is used instead
+    * Verify that the chain of certificates is valid
+    * Verify that validation stops when a signed data object intergrity check fails
+    *
+    * Inputs:
+    * signingCertificateMock is not null
+    * signatureValidationPoliciesMock is null
+    * validationTimeMock is 2000 milliseconds after standard base time
+    *
+    * Outputs:
+    * validationResult is INDETERMINATE, HASH_FAILURE
+    */
+    @Test
+    public void test_22_SigningCertificateFound_InputPolicyInvalid_ValidChain_ObjectIntegrityFailure() {
+        /* Initialize mocked class variables */
+        this.signingCertificateMock = mock(SignatureCertificate.class);
+        this.signatureValidationPoliciesMock = null;
+        this.validationTimeMock = new Date(2000);
+        this.instance = BasicSignatureValidator.getInstance(signatureMock, signerDocumentMock, signingCertificateMock, trustAnchorsMock, allowableValidationPolicyIdsMock, signatureValidationPoliciesMock, localConfigurationMock, validationTimeMock, chainPathVerifierMock);
+        
+        /* Initialize local mocked variables */
+        byte[] mockedPolicyHashValue = new byte[]{(byte)5,(byte)5,(byte)5};
+        DigestAlgorithm mockedDigestAlgorithm = mock(DigestAlgorithm.class);
+        String mockedCertificateDigest = "BQUF";
+        String mockedCertificateAlgorithm = "RSA-256";
+        PolicyIdentifier mockedPolicyIdentifier = mock(PolicyIdentifier.class);
+        SignatureCertificate mockedCertificate = mock(SignatureCertificate.class);
+        List<SignatureCertificate> mockedChain = new ArrayList<>();
+        mockedChain.add(mockedCertificate);
+        X509ValidationConstraints mockedX09ValidationContraints = mock(X509ValidationConstraints.class);
+        CryptographicConstraints mockedCryptographicConstraints = mock(CryptographicConstraints.class);
+        PathValidationStatus mockedPathValidationStatus = PathValidationStatus.VALID;
+        Date mockedMaximumAcceptedRevocationFreshness = new Date(1000);
+        Date mockedIssuanceDate = new Date(1500);
+        RevocationStatusInformation mockedRevocationStatusInformation = mock(RevocationStatusInformation.class);
+        Date mockedValidityRange = new Date(600);
+        SignedProperties mockedSignedProperties = mock(SignedProperties.class);
+        SignedDataObjectProperties mockedSignedDataObjectProperties = mock(SignedDataObjectProperties.class);
+        List<SignedDataObject> mockedSignedDataObjects = new ArrayList<>();
+        SignedDataObject mockedSignedDataObject = mock(SignedDataObject.class);
+        mockedSignedDataObjects.add(mockedSignedDataObject);
+
+        /* Calls to mocks */
+        identifySigningCertificateForcePassed(mockedCertificate, mockedCertificateDigest, mockedCertificateAlgorithm);
+        initializeValidationContextForcePassed(mockedPolicyIdentifier, mockedCertificateDigest, mockedPolicyHashValue, mockedDigestAlgorithm);
+        validateX509CertificateForcePassed(mockedChain, mockedPolicyIdentifier, mockedX09ValidationContraints, mockedPathValidationStatus, mockedMaximumAcceptedRevocationFreshness, mockedCertificate, mockedRevocationStatusInformation, mockedIssuanceDate, mockedCryptographicConstraints, mockedValidityRange);
+        
+        Mockito.when(this.signatureMock.getSignedProperties()).thenReturn(mockedSignedProperties);
+        Mockito.when(mockedSignedProperties.getSignedDataObjectProperties()).thenReturn(mockedSignedDataObjectProperties);
+        Mockito.when(mockedSignedDataObjectProperties.getSignedDataObjects()).thenReturn(mockedSignedDataObjects);
+        Mockito.when(mockedSignedDataObject.checkIntegrity()).thenReturn(false);
+       
+        
+        /* Function to test */
+        Indication validationResult = this.instance.validate(false);
+        
+        /* Verify function calls */
+        
+        /* Verify tested function output */
+        Assert.assertEquals(Indication.FAILED, validationResult.getValue());
+        Assert.assertEquals(SubIndication.HASH_FAILURE, validationResult.getSubIndication());
+
+    }
+    
+    /*
+    * TEST 23
+    * 
+    * Description:
+    * Verify that a Signing Certificate is identified when Signing Certificate is provided as input, the Signers Certificate is identified from Signature and it is valid
+    * Verify that input policy is not in the allowable policies list and the default validation is used instead
+    * Verify that the chain of certificates is valid
+    * Verify that validation stops when signature value check fails
+    *
+    * Inputs:
+    * signingCertificateMock is not null
+    * signatureValidationPoliciesMock is null
+    * validationTimeMock is 2000 milliseconds after standard base time
+    *
+    * Outputs:
+    * validationResult is FAILED, SIG_CRYPTO_FAILURE
+    */
+    @Test
+    public void test_23_SigningCertificateFound_InputPolicyInvalid_ValidChain_InvalidSignatureValue() {
+        /* Initialize mocked class variables */
+        this.signingCertificateMock = mock(SignatureCertificate.class);
+        this.signatureValidationPoliciesMock = null;
+        this.validationTimeMock = new Date(2000);
+        this.instance = BasicSignatureValidator.getInstance(signatureMock, signerDocumentMock, signingCertificateMock, trustAnchorsMock, allowableValidationPolicyIdsMock, signatureValidationPoliciesMock, localConfigurationMock, validationTimeMock, chainPathVerifierMock);
+        
+        /* Initialize local mocked variables */
+        byte[] mockedPolicyHashValue = new byte[]{(byte)5,(byte)5,(byte)5};
+        DigestAlgorithm mockedDigestAlgorithm = mock(DigestAlgorithm.class);
+        String mockedCertificateDigest = "BQUF";
+        String mockedCertificateAlgorithm = "RSA-256";
+        PolicyIdentifier mockedPolicyIdentifier = mock(PolicyIdentifier.class);
+        SignatureCertificate mockedCertificate = mock(SignatureCertificate.class);
+        List<SignatureCertificate> mockedChain = new ArrayList<>();
+        mockedChain.add(mockedCertificate);
+        X509ValidationConstraints mockedX09ValidationContraints = mock(X509ValidationConstraints.class);
+        CryptographicConstraints mockedCryptographicConstraints = mock(CryptographicConstraints.class);
+        PathValidationStatus mockedPathValidationStatus = PathValidationStatus.VALID;
+        Date mockedMaximumAcceptedRevocationFreshness = new Date(1000);
+        Date mockedIssuanceDate = new Date(1500);
+        RevocationStatusInformation mockedRevocationStatusInformation = mock(RevocationStatusInformation.class);
+        Date mockedValidityRange = new Date(600);
+        SignedProperties mockedSignedProperties = mock(SignedProperties.class);
+        SignedDataObjectProperties mockedSignedDataObjectProperties = mock(SignedDataObjectProperties.class);
+        List<SignedDataObject> mockedSignedDataObjects = new ArrayList<>();
+        SignedDataObject mockedSignedDataObject = mock(SignedDataObject.class);
+        mockedSignedDataObjects.add(mockedSignedDataObject);
+        PublicKey mockedPublicKey = mock(PublicKey.class);
+
+        /* Calls to mocks */
+        identifySigningCertificateForcePassed(mockedCertificate, mockedCertificateDigest, mockedCertificateAlgorithm);
+        initializeValidationContextForcePassed(mockedPolicyIdentifier, mockedCertificateDigest, mockedPolicyHashValue, mockedDigestAlgorithm);
+        validateX509CertificateForcePassed(mockedChain, mockedPolicyIdentifier, mockedX09ValidationContraints, mockedPathValidationStatus, mockedMaximumAcceptedRevocationFreshness, mockedCertificate, mockedRevocationStatusInformation, mockedIssuanceDate, mockedCryptographicConstraints, mockedValidityRange);
+        
+        Mockito.when(this.signatureMock.getSignedProperties()).thenReturn(mockedSignedProperties);
+        Mockito.when(mockedSignedProperties.getSignedDataObjectProperties()).thenReturn(mockedSignedDataObjectProperties);
+        Mockito.when(mockedSignedDataObjectProperties.getSignedDataObjects()).thenReturn(mockedSignedDataObjects);
+        Mockito.when(mockedSignedDataObject.checkIntegrity()).thenReturn(true);
+        Mockito.when(signingCertificateMock.getPublicKey()).thenReturn(mockedPublicKey);
+        Mockito.when(signatureMock.getSignatureValue()).thenReturn(mockedCertificateDigest);
+        Mockito.when(signatureMock.checkSignatureValue(mockedCertificateDigest, mockedCertificateAlgorithm, mockedPublicKey)).thenReturn(false);
+        
+        /* Function to test */
+        Indication validationResult = this.instance.validate(false);
+        
+        /* Verify function calls */
+        
+        /* Verify tested function output */
+        Assert.assertEquals(Indication.FAILED, validationResult.getValue());
+        Assert.assertEquals(SubIndication.SIG_CRYPTO_FAILURE, validationResult.getSubIndication());
+
+    }
+    
+    /*
+    * TEST 24
+    * 
+    * Description:
+    * Verify that a Signing Certificate is identified when Signing Certificate is provided as input, the Signers Certificate is identified from Signature and it is valid
+    * Verify that input policy is not in the allowable policies list and the default validation is used instead
+    * Verify that the chain of certificates is valid
+    * Verify that cryptographic verification succeeds
+    * Verify that validation stops when a deprecated algorithm is detected
+    *
+    * Inputs:
+    * signingCertificateMock is not null
+    * signatureValidationPoliciesMock is null
+    * validationTimeMock is 2000 milliseconds after standard base time
+    *
+    * Outputs:
+    * validationResult is INDETERMINATE, CRYPTO_CONSTRAINTS_FAILURE_NO_POE
+    */
+    @Test
+    public void test_24_SigningCertificateFound_InputPolicyInvalid_ValidChain_DeprecatedAlgorithm() {
+        /* Initialize mocked class variables */
+        this.signingCertificateMock = mock(SignatureCertificate.class);
+        this.signatureValidationPoliciesMock = null;
+        this.validationTimeMock = new Date(2000);
+        this.instance = BasicSignatureValidator.getInstance(signatureMock, signerDocumentMock, signingCertificateMock, trustAnchorsMock, allowableValidationPolicyIdsMock, signatureValidationPoliciesMock, localConfigurationMock, validationTimeMock, chainPathVerifierMock);
+        
+        /* Initialize local mocked variables */
+        byte[] mockedPolicyHashValue = new byte[]{(byte)5,(byte)5,(byte)5};
+        DigestAlgorithm mockedDigestAlgorithm = mock(DigestAlgorithm.class);
+        String mockedCertificateDigest = "BQUF";
+        String mockedCertificateAlgorithm = "RSA-256";
+        PolicyIdentifier mockedPolicyIdentifier = mock(PolicyIdentifier.class);
+        SignatureCertificate mockedCertificate = mock(SignatureCertificate.class);
+        List<SignatureCertificate> mockedChain = new ArrayList<>();
+        mockedChain.add(mockedCertificate);
+        X509ValidationConstraints mockedX09ValidationContraints = mock(X509ValidationConstraints.class);
+        CryptographicConstraints mockedCryptographicConstraints = mock(CryptographicConstraints.class);
+        PathValidationStatus mockedPathValidationStatus = PathValidationStatus.VALID;
+        Date mockedMaximumAcceptedRevocationFreshness = new Date(1000);
+        Date mockedIssuanceDate = new Date(1500);
+        RevocationStatusInformation mockedRevocationStatusInformation = mock(RevocationStatusInformation.class);
+        Date mockedValidityRange = new Date(600);
+        SignedProperties mockedSignedProperties = mock(SignedProperties.class);
+        SignedDataObjectProperties mockedSignedDataObjectProperties = mock(SignedDataObjectProperties.class);
+        List<SignedDataObject> mockedSignedDataObjects = new ArrayList<>();
+        SignedDataObject mockedSignedDataObject = mock(SignedDataObject.class);
+        mockedSignedDataObjects.add(mockedSignedDataObject);
+        PublicKey mockedPublicKey = mock(PublicKey.class);
+        List<String> mockedSignatureAlgorithms = new ArrayList<>();
+        mockedSignatureAlgorithms.add(mockedCertificateAlgorithm);
+        SignedSignatureProperties mockedSignedSignatureProperties = mock(SignedSignatureProperties.class);
+        List<TimeStamp> mockedTimeStamps = new ArrayList<>();
+        TimeStamp mockedTimeStamp = mock(TimeStamp.class);
+        mockedTimeStamps.add(mockedTimeStamp);
+        UnsignedProperties mockedUnsignedProperties = mock(UnsignedProperties.class);
+        List<SignatureCertificate> mockedOtherCertificates = new ArrayList<>();
+        SignatureCertificate mockedOtherCertificate = mock(SignatureCertificate.class);
+        mockedOtherCertificates.add(mockedOtherCertificate);
+        RevocationValues mockedRevocationValues = mock(RevocationValues.class);
+        List<EncapsulatedPKIData> mockedCRLValues = new ArrayList<>();
+        EncapsulatedPKIData mockedEncapsulatedPKIData = mock(EncapsulatedPKIData.class);
+        mockedCRLValues.add(mockedEncapsulatedPKIData);
+
+        /* Calls to mocks */
+        identifySigningCertificateForcePassed(mockedCertificate, mockedCertificateDigest, mockedCertificateAlgorithm);
+        initializeValidationContextForcePassed(mockedPolicyIdentifier, mockedCertificateDigest, mockedPolicyHashValue, mockedDigestAlgorithm);
+        validateX509CertificateForcePassed(mockedChain, mockedPolicyIdentifier, mockedX09ValidationContraints, mockedPathValidationStatus, mockedMaximumAcceptedRevocationFreshness, mockedCertificate, mockedRevocationStatusInformation, mockedIssuanceDate, mockedCryptographicConstraints, mockedValidityRange);
+        
+        Mockito.when(this.signatureMock.getSignedProperties()).thenReturn(mockedSignedProperties);
+        Mockito.when(mockedSignedProperties.getSignedDataObjectProperties()).thenReturn(mockedSignedDataObjectProperties);
+        Mockito.when(mockedSignedDataObjectProperties.getSignedDataObjects()).thenReturn(mockedSignedDataObjects);
+        Mockito.when(mockedSignedDataObject.checkIntegrity()).thenReturn(true);
+        Mockito.when(signingCertificateMock.getPublicKey()).thenReturn(mockedPublicKey);
+        Mockito.when(signatureMock.getSignatureValue()).thenReturn(mockedCertificateDigest);
+        Mockito.when(signatureMock.checkSignatureValue(mockedCertificateDigest, mockedCertificateAlgorithm, mockedPublicKey)).thenReturn(true);
+        Mockito.when(signatureMock.getSignatureAlgorithm()).thenReturn(mockedCertificateAlgorithm);
+        Mockito.when(mockedSignedProperties.getSignedSignatureProperties()).thenReturn(mockedSignedSignatureProperties);
+        Mockito.when(mockedSignedSignatureProperties.getSigningCertificate()).thenReturn(signingCertificateMock);
+        Mockito.when(mockedPublicKey.getAlgorithm()).thenReturn(mockedCertificateAlgorithm);
+        Mockito.when(mockedSignedDataObjectProperties.getAllDataObjectsTimestamps()).thenReturn(mockedTimeStamps);
+        Mockito.when(mockedTimeStamp.getSignatureAlgorithm()).thenReturn(mockedCertificateAlgorithm);
+        Mockito.when(mockedSignedDataObjectProperties.getIndividualDataObjectsTimeStamps()).thenReturn(mockedTimeStamps);
+        Mockito.when(signatureMock.getUnsignedProperties()).thenReturn(mockedUnsignedProperties);
+        Mockito.when(mockedUnsignedProperties.getArchiveTimeStamps()).thenReturn(mockedTimeStamps);
+        Mockito.when(mockedUnsignedProperties.getCertificateValues()).thenReturn(mockedOtherCertificates);
+        Mockito.when(mockedOtherCertificate.getPublicKey()).thenReturn(mockedPublicKey);
+        Mockito.when(mockedUnsignedProperties.getRevocationValues()).thenReturn(mockedRevocationValues);
+        Mockito.when(mockedRevocationValues.getCRLValues()).thenReturn(mockedCRLValues);
+        Mockito.when(mockedEncapsulatedPKIData.getCertificate()).thenReturn(mockedOtherCertificate);
+        Mockito.when(mockedCryptographicConstraints.isAlgorithmReliable(mockedCertificateAlgorithm, validationTimeMock)).thenReturn(false);
+        
+        /* Function to test */
+        Indication validationResult = this.instance.validate(false);
+        
+        /* Verify function calls */
+        
+        /* Verify tested function output */
+        Assert.assertEquals(Indication.INDETERMINATE, validationResult.getValue());
+        Assert.assertEquals(SubIndication.CRYPTO_CONSTRAINTS_FAILURE_NO_POE, validationResult.getSubIndication());
+
+    }
+    
+    /*
+    * TEST 25
+    * 
+    * Description:
+    * Verify that a Signing Certificate is identified when Signing Certificate is provided as input, the Signers Certificate is identified from Signature and it is valid
+    * Verify that input policy is not in the allowable policies list and the default validation is used instead
+    * Verify that the chain of certificates is valid
+    * Verify that cryptographic verification succeeds
+    * Verify that validation stops when a mandatory attribute is missing
+    *
+    * Inputs:
+    * signingCertificateMock is not null
+    * signatureValidationPoliciesMock is null
+    * validationTimeMock is 2000 milliseconds after standard base time
+    *
+    * Outputs:
+    * validationResult is INDETERMINATE, SIG_CONSTRAINTS_FAILURE
+    */
+    @Test
+    public void test_25_SigningCertificateFound_InputPolicyInvalid_ValidChain_MissingMandatoryAttribute() {
+        /* Initialize mocked class variables */
+        this.signingCertificateMock = mock(SignatureCertificate.class);
+        this.signatureValidationPoliciesMock = null;
+        this.validationTimeMock = new Date(2000);
+        this.instance = BasicSignatureValidator.getInstance(signatureMock, signerDocumentMock, signingCertificateMock, trustAnchorsMock, allowableValidationPolicyIdsMock, signatureValidationPoliciesMock, localConfigurationMock, validationTimeMock, chainPathVerifierMock);
+        
+        /* Initialize local mocked variables */
+        byte[] mockedPolicyHashValue = new byte[]{(byte)5,(byte)5,(byte)5};
+        DigestAlgorithm mockedDigestAlgorithm = mock(DigestAlgorithm.class);
+        String mockedCertificateDigest = "BQUF";
+        String mockedCertificateAlgorithm = "RSA-256";
+        PolicyIdentifier mockedPolicyIdentifier = mock(PolicyIdentifier.class);
+        SignatureCertificate mockedCertificate = mock(SignatureCertificate.class);
+        List<SignatureCertificate> mockedChain = new ArrayList<>();
+        mockedChain.add(mockedCertificate);
+        X509ValidationConstraints mockedX09ValidationContraints = mock(X509ValidationConstraints.class);
+        CryptographicConstraints mockedCryptographicConstraints = mock(CryptographicConstraints.class);
+        PathValidationStatus mockedPathValidationStatus = PathValidationStatus.VALID;
+        Date mockedMaximumAcceptedRevocationFreshness = new Date(1000);
+        Date mockedIssuanceDate = new Date(1500);
+        RevocationStatusInformation mockedRevocationStatusInformation = mock(RevocationStatusInformation.class);
+        Date mockedValidityRange = new Date(600);
+        SignedProperties mockedSignedProperties = mock(SignedProperties.class);
+        SignedDataObjectProperties mockedSignedDataObjectProperties = mock(SignedDataObjectProperties.class);
+        List<SignedDataObject> mockedSignedDataObjects = new ArrayList<>();
+        SignedDataObject mockedSignedDataObject = mock(SignedDataObject.class);
+        mockedSignedDataObjects.add(mockedSignedDataObject);
+        PublicKey mockedPublicKey = mock(PublicKey.class);
+        SignedSignatureProperties mockedSignedSignatureProperties = mock(SignedSignatureProperties.class);
+        List<TimeStamp> mockedTimeStamps = new ArrayList<>();
+        TimeStamp mockedTimeStamp = mock(TimeStamp.class);
+        mockedTimeStamps.add(mockedTimeStamp);
+        UnsignedProperties mockedUnsignedProperties = mock(UnsignedProperties.class);
+        List<SignatureCertificate> mockedOtherCertificates = new ArrayList<>();
+        SignatureCertificate mockedOtherCertificate = mock(SignatureCertificate.class);
+        mockedOtherCertificates.add(mockedOtherCertificate);
+        RevocationValues mockedRevocationValues = mock(RevocationValues.class);
+        List<EncapsulatedPKIData> mockedCRLValues = new ArrayList<>();
+        EncapsulatedPKIData mockedEncapsulatedPKIData = mock(EncapsulatedPKIData.class);
+        mockedCRLValues.add(mockedEncapsulatedPKIData);
+        SignatureElementConstraints mockedSignatureElementConstraints = mock(SignatureElementConstraints.class);
+
+        /* Calls to mocks */
+        identifySigningCertificateForcePassed(mockedCertificate, mockedCertificateDigest, mockedCertificateAlgorithm);
+        initializeValidationContextForcePassed(mockedPolicyIdentifier, mockedCertificateDigest, mockedPolicyHashValue, mockedDigestAlgorithm);
+        validateX509CertificateForcePassed(mockedChain, mockedPolicyIdentifier, mockedX09ValidationContraints, mockedPathValidationStatus, mockedMaximumAcceptedRevocationFreshness, mockedCertificate, mockedRevocationStatusInformation, mockedIssuanceDate, mockedCryptographicConstraints, mockedValidityRange);
+        cryptographicVerificationForcePassed(mockedSignedProperties, mockedSignedDataObjectProperties, mockedSignedDataObjects, mockedPublicKey, mockedCertificateDigest, mockedCertificateAlgorithm);
+        
+        Mockito.when(signatureMock.getSignatureAlgorithm()).thenReturn(mockedCertificateAlgorithm);
+        Mockito.when(mockedDigestAlgorithm.getAlgorithm()).thenReturn(mockedCertificateAlgorithm);
+        Mockito.when(mockedSignedProperties.getSignedSignatureProperties()).thenReturn(mockedSignedSignatureProperties);
+        Mockito.when(mockedSignedSignatureProperties.getSigningCertificate()).thenReturn(signingCertificateMock);
+        Mockito.when(mockedPublicKey.getAlgorithm()).thenReturn(mockedCertificateAlgorithm);
+        Mockito.when(mockedSignedDataObjectProperties.getAllDataObjectsTimestamps()).thenReturn(mockedTimeStamps);
+        Mockito.when(mockedTimeStamp.getSignatureAlgorithm()).thenReturn(mockedCertificateAlgorithm);
+        Mockito.when(mockedSignedDataObjectProperties.getIndividualDataObjectsTimeStamps()).thenReturn(mockedTimeStamps);
+        Mockito.when(signatureMock.getUnsignedProperties()).thenReturn(mockedUnsignedProperties);
+        Mockito.when(mockedUnsignedProperties.getArchiveTimeStamps()).thenReturn(mockedTimeStamps);
+        Mockito.when(mockedUnsignedProperties.getCertificateValues()).thenReturn(mockedOtherCertificates);
+        Mockito.when(mockedOtherCertificate.getPublicKey()).thenReturn(mockedPublicKey);
+        Mockito.when(mockedUnsignedProperties.getRevocationValues()).thenReturn(mockedRevocationValues);
+        Mockito.when(mockedRevocationValues.getCRLValues()).thenReturn(mockedCRLValues);
+        Mockito.when(mockedEncapsulatedPKIData.getCertificate()).thenReturn(mockedOtherCertificate);
+        Mockito.when(mockedCryptographicConstraints.isAlgorithmReliable(mockedCertificateAlgorithm, validationTimeMock)).thenReturn(true);
+        Mockito.when(mockedPolicyIdentifier.getSignatureElementConstraints()).thenReturn(mockedSignatureElementConstraints);
+        Mockito.when(mockedSignatureElementConstraints.containsMissingElement(signatureMock)).thenReturn(false);
+        
+        /* Function to test */
+        Indication validationResult = this.instance.validate(false);
+        
+        /* Verify function calls */
+        
+        /* Verify tested function output */
+        Assert.assertEquals(Indication.INDETERMINATE, validationResult.getValue());
+        Assert.assertEquals(SubIndication.SIG_CONSTRAINTS_FAILURE, validationResult.getSubIndication());
+
+    }
+    
+    /*
+    * TEST 26
+    * 
+    * Description:
+    * Verify that a Signing Certificate is identified when Signing Certificate is provided as input, the Signers Certificate is identified from Signature and it is valid
+    * Verify that input policy is not in the allowable policies list and the default validation is used instead
+    * Verify that the chain of certificates is valid
+    * Verify that cryptographic verification succeeds
+    * Verify that validation ends with a valid result when a mandatory attributes are not missing
+    *
+    * Inputs:
+    * signingCertificateMock is not null
+    * signatureValidationPoliciesMock is null
+    * validationTimeMock is 2000 milliseconds after standard base time
+    *
+    * Outputs:
+    * validationResult is PASSED
+    */
+    @Test
+    public void test_26_ValidBasicSignature() {
+        /* Initialize mocked class variables */
+        this.signingCertificateMock = mock(SignatureCertificate.class);
+        this.signatureValidationPoliciesMock = null;
+        this.validationTimeMock = new Date(2000);
+        this.instance = BasicSignatureValidator.getInstance(signatureMock, signerDocumentMock, signingCertificateMock, trustAnchorsMock, allowableValidationPolicyIdsMock, signatureValidationPoliciesMock, localConfigurationMock, validationTimeMock, chainPathVerifierMock);
+        
+        /* Initialize local mocked variables */
+        byte[] mockedPolicyHashValue = new byte[]{(byte)5,(byte)5,(byte)5};
+        DigestAlgorithm mockedDigestAlgorithm = mock(DigestAlgorithm.class);
+        String mockedCertificateDigest = "BQUF";
+        String mockedCertificateAlgorithm = "RSA-256";
+        PolicyIdentifier mockedPolicyIdentifier = mock(PolicyIdentifier.class);
+        SignatureCertificate mockedCertificate = mock(SignatureCertificate.class);
+        List<SignatureCertificate> mockedChain = new ArrayList<>();
+        mockedChain.add(mockedCertificate);
+        X509ValidationConstraints mockedX09ValidationContraints = mock(X509ValidationConstraints.class);
+        CryptographicConstraints mockedCryptographicConstraints = mock(CryptographicConstraints.class);
+        PathValidationStatus mockedPathValidationStatus = PathValidationStatus.VALID;
+        Date mockedMaximumAcceptedRevocationFreshness = new Date(1000);
+        Date mockedIssuanceDate = new Date(1500);
+        RevocationStatusInformation mockedRevocationStatusInformation = mock(RevocationStatusInformation.class);
+        Date mockedValidityRange = new Date(600);
+        SignedProperties mockedSignedProperties = mock(SignedProperties.class);
+        SignedDataObjectProperties mockedSignedDataObjectProperties = mock(SignedDataObjectProperties.class);
+        List<SignedDataObject> mockedSignedDataObjects = new ArrayList<>();
+        SignedDataObject mockedSignedDataObject = mock(SignedDataObject.class);
+        mockedSignedDataObjects.add(mockedSignedDataObject);
+        PublicKey mockedPublicKey = mock(PublicKey.class);
+        SignedSignatureProperties mockedSignedSignatureProperties = mock(SignedSignatureProperties.class);
+        List<TimeStamp> mockedTimeStamps = new ArrayList<>();
+        TimeStamp mockedTimeStamp = mock(TimeStamp.class);
+        mockedTimeStamps.add(mockedTimeStamp);
+        UnsignedProperties mockedUnsignedProperties = mock(UnsignedProperties.class);
+        List<SignatureCertificate> mockedOtherCertificates = new ArrayList<>();
+        SignatureCertificate mockedOtherCertificate = mock(SignatureCertificate.class);
+        mockedOtherCertificates.add(mockedOtherCertificate);
+        RevocationValues mockedRevocationValues = mock(RevocationValues.class);
+        List<EncapsulatedPKIData> mockedCRLValues = new ArrayList<>();
+        EncapsulatedPKIData mockedEncapsulatedPKIData = mock(EncapsulatedPKIData.class);
+        mockedCRLValues.add(mockedEncapsulatedPKIData);
+        SignatureElementConstraints mockedSignatureElementConstraints = mock(SignatureElementConstraints.class);
+
+        /* Calls to mocks */
+        identifySigningCertificateForcePassed(mockedCertificate, mockedCertificateDigest, mockedCertificateAlgorithm);
+        initializeValidationContextForcePassed(mockedPolicyIdentifier, mockedCertificateDigest, mockedPolicyHashValue, mockedDigestAlgorithm);
+        validateX509CertificateForcePassed(mockedChain, mockedPolicyIdentifier, mockedX09ValidationContraints, mockedPathValidationStatus, mockedMaximumAcceptedRevocationFreshness, mockedCertificate, mockedRevocationStatusInformation, mockedIssuanceDate, mockedCryptographicConstraints, mockedValidityRange);
+        cryptographicVerificationForcePassed(mockedSignedProperties, mockedSignedDataObjectProperties, mockedSignedDataObjects, mockedPublicKey, mockedCertificateDigest, mockedCertificateAlgorithm);
+        
+        Mockito.when(signatureMock.getSignatureAlgorithm()).thenReturn(mockedCertificateAlgorithm);
+        Mockito.when(mockedDigestAlgorithm.getAlgorithm()).thenReturn(mockedCertificateAlgorithm);
+        Mockito.when(mockedSignedProperties.getSignedSignatureProperties()).thenReturn(mockedSignedSignatureProperties);
+        Mockito.when(mockedSignedSignatureProperties.getSigningCertificate()).thenReturn(signingCertificateMock);
+        Mockito.when(mockedPublicKey.getAlgorithm()).thenReturn(mockedCertificateAlgorithm);
+        Mockito.when(mockedSignedDataObjectProperties.getAllDataObjectsTimestamps()).thenReturn(mockedTimeStamps);
+        Mockito.when(mockedTimeStamp.getSignatureAlgorithm()).thenReturn(mockedCertificateAlgorithm);
+        Mockito.when(mockedSignedDataObjectProperties.getIndividualDataObjectsTimeStamps()).thenReturn(mockedTimeStamps);
+        Mockito.when(signatureMock.getUnsignedProperties()).thenReturn(mockedUnsignedProperties);
+        Mockito.when(mockedUnsignedProperties.getArchiveTimeStamps()).thenReturn(mockedTimeStamps);
+        Mockito.when(mockedUnsignedProperties.getCertificateValues()).thenReturn(mockedOtherCertificates);
+        Mockito.when(mockedOtherCertificate.getPublicKey()).thenReturn(mockedPublicKey);
+        Mockito.when(mockedUnsignedProperties.getRevocationValues()).thenReturn(mockedRevocationValues);
+        Mockito.when(mockedRevocationValues.getCRLValues()).thenReturn(mockedCRLValues);
+        Mockito.when(mockedEncapsulatedPKIData.getCertificate()).thenReturn(mockedOtherCertificate);
+        Mockito.when(mockedCryptographicConstraints.isAlgorithmReliable(mockedCertificateAlgorithm, validationTimeMock)).thenReturn(true);
+        Mockito.when(mockedPolicyIdentifier.getSignatureElementConstraints()).thenReturn(mockedSignatureElementConstraints);
+        Mockito.when(mockedSignatureElementConstraints.containsMissingElement(signatureMock)).thenReturn(true);
+        
+        /* Function to test */
+        Indication validationResult = this.instance.validate(false);
+        
+        /* Verify function calls */
+        
+        /* Verify tested function output */
+        Assert.assertEquals(Indication.PASSED, validationResult.getValue());
+
+    }
+    
     
     /**************************************************************
      ********************* SUPPORT FUNCTIONS **********************
@@ -588,11 +1828,60 @@ public class BasicSignatureValidatorTest {
         Mockito.when(this.signingCertificateMock.applyDigest(mockedCertificateDigest, mockedCertificateAlgorithm)).thenReturn(true);
     }
     
-    private void initializeValidationContextForcePassed(PolicyIdentifier mockedPolicyIdentifier, String mockedCertificateDigest) {
+    private void initializeValidationContextForcePassed(PolicyIdentifier mockedPolicyIdentifier, String mockedCertificateDigest, byte[] mockedPolicyHashValue, DigestAlgorithm mockedDigestAlgorithm) {
+        
         Mockito.when(this.localConfigurationMock.getDefaultPolicyIdentifier()).thenReturn(mockedPolicyIdentifier);
         Mockito.when(mockedPolicyIdentifier.getSignaturePolicyDocument()).thenReturn(true);
         Mockito.when(mockedPolicyIdentifier.parseSignaturePolicyDocument()).thenReturn(true);
-        Mockito.when(this.signatureMock.getSignatureValue()).thenReturn(mockedCertificateDigest);
-        Mockito.when(mockedPolicyIdentifier.applySignatureTransforms(this.signatureMock)).thenReturn(mockedCertificateDigest);
+        Mockito.when(mockedPolicyIdentifier.getHash()).thenReturn(mockedDigestAlgorithm);
+        Mockito.when(mockedDigestAlgorithm.getValue()).thenReturn(mockedPolicyHashValue);
+        Mockito.when(mockedPolicyIdentifier.applySignatureTransforms(signatureMock)).thenReturn(mockedCertificateDigest);
+    }
+    
+    private void validateX509CertificateForcePassed(List<SignatureCertificate> mockedChain, PolicyIdentifier mockedPolicyIdentifier, X509ValidationConstraints mockedX09ValidationContraints, PathValidationStatus mockedPathValidationStatus, Date mockedMaximumAcceptedRevocationFreshness, SignatureCertificate mockedCertificate, RevocationStatusInformation mockedRevocationStatusInformation, Date mockedIssuanceDate, CryptographicConstraints mockedCryptographicConstraints, Date mockedValidityRange) {
+        Mockito.when(this.signingCertificateMock.getChainOfCertificates()).thenReturn(mockedChain);
+        Mockito.when(mockedPolicyIdentifier.getX509ValidationConstraints()).thenReturn(mockedX09ValidationContraints);
+        Mockito.when(mockedX09ValidationContraints.getValidationModel()).thenReturn(null);
+        Mockito.when(this.chainPathVerifierMock.validateChain(mockedChain, this.validationTimeMock, ValidationModel.CHAIN_MODEL)).thenReturn(mockedPathValidationStatus);
+        Mockito.when(mockedX09ValidationContraints.getMaximumAcceptedRevocationFreshness()).thenReturn(mockedMaximumAcceptedRevocationFreshness);
+        Mockito.when(mockedCertificate.getRevocationStatusInformation()).thenReturn(mockedRevocationStatusInformation);
+        Mockito.when(mockedRevocationStatusInformation.getIssuanceDate()).thenReturn(mockedIssuanceDate);
+        Mockito.when(mockedX09ValidationContraints.isChainMatched(mockedChain)).thenReturn(true);
+        Mockito.when(mockedPolicyIdentifier.getCryptographicConstraints()).thenReturn(mockedCryptographicConstraints);
+        Mockito.when(mockedCryptographicConstraints.isChainMatched(mockedChain)).thenReturn(true);
+        Mockito.when(mockedX09ValidationContraints.getSigningCertificateValidityRange()).thenReturn(mockedValidityRange);
+        Mockito.when(this.signingCertificateMock.getRevocationStatusInformation()).thenReturn(mockedRevocationStatusInformation);
+    }
+    
+    private void cryptographicVerificationForcePassed(SignedProperties mockedSignedProperties, SignedDataObjectProperties mockedSignedDataObjectProperties, List<SignedDataObject> mockedSignedDataObjects, PublicKey mockedPublicKey, String mockedCertificateDigest, String mockedCertificateAlgorithm) {
+        Mockito.when(this.signatureMock.getSignedProperties()).thenReturn(mockedSignedProperties);
+        Mockito.when(mockedSignedProperties.getSignedDataObjectProperties()).thenReturn(mockedSignedDataObjectProperties);
+        Mockito.when(mockedSignedDataObjectProperties.getSignedDataObjects()).thenReturn(mockedSignedDataObjects);
+        Mockito.when(mockedSignedDataObjects.get(0).checkIntegrity()).thenReturn(true);
+        Mockito.when(signingCertificateMock.getPublicKey()).thenReturn(mockedPublicKey);
+        Mockito.when(signatureMock.getSignatureValue()).thenReturn(mockedCertificateDigest);
+        Mockito.when(signatureMock.checkSignatureValue(mockedCertificateDigest, mockedCertificateAlgorithm, mockedPublicKey)).thenReturn(true);
+        
+    }
+    
+    private void validateSignatureAcceptance(String mockedCertificateAlgorithm, DigestAlgorithm mockedDigestAlgorithm, SignedProperties mockedSignedProperties, SignedSignatureProperties mockedSignedSignatureProperties, PublicKey mockedPublicKey, SignedDataObjectProperties mockedSignedDataObjectProperties, List<TimeStamp> mockedTimeStamps, TimeStamp mockedTimeStamp, UnsignedProperties mockedUnsignedProperties, List<SignatureCertificate> mockedOtherCertificates, SignatureCertificate mockedOtherCertificate, RevocationValues mockedRevocationValues, List<EncapsulatedPKIData> mockedCRLValues, EncapsulatedPKIData mockedEncapsulatedPKIData, CryptographicConstraints mockedCryptographicConstraints, PolicyIdentifier mockedPolicyIdentifier, SignatureElementConstraints mockedSignatureElementConstraints) {
+        Mockito.when(signatureMock.getSignatureAlgorithm()).thenReturn(mockedCertificateAlgorithm);
+        Mockito.when(mockedDigestAlgorithm.getAlgorithm()).thenReturn(mockedCertificateAlgorithm);
+        Mockito.when(mockedSignedProperties.getSignedSignatureProperties()).thenReturn(mockedSignedSignatureProperties);
+        Mockito.when(mockedSignedSignatureProperties.getSigningCertificate()).thenReturn(signingCertificateMock);
+        Mockito.when(mockedPublicKey.getAlgorithm()).thenReturn(mockedCertificateAlgorithm);
+        Mockito.when(mockedSignedDataObjectProperties.getAllDataObjectsTimestamps()).thenReturn(mockedTimeStamps);
+        Mockito.when(mockedTimeStamp.getSignatureAlgorithm()).thenReturn(mockedCertificateAlgorithm);
+        Mockito.when(mockedSignedDataObjectProperties.getIndividualDataObjectsTimeStamps()).thenReturn(mockedTimeStamps);
+        Mockito.when(signatureMock.getUnsignedProperties()).thenReturn(mockedUnsignedProperties);
+        Mockito.when(mockedUnsignedProperties.getArchiveTimeStamps()).thenReturn(mockedTimeStamps);
+        Mockito.when(mockedUnsignedProperties.getCertificateValues()).thenReturn(mockedOtherCertificates);
+        Mockito.when(mockedOtherCertificate.getPublicKey()).thenReturn(mockedPublicKey);
+        Mockito.when(mockedUnsignedProperties.getRevocationValues()).thenReturn(mockedRevocationValues);
+        Mockito.when(mockedRevocationValues.getCRLValues()).thenReturn(mockedCRLValues);
+        Mockito.when(mockedEncapsulatedPKIData.getCertificate()).thenReturn(mockedOtherCertificate);
+        Mockito.when(mockedCryptographicConstraints.isAlgorithmReliable(mockedCertificateAlgorithm, validationTimeMock)).thenReturn(true);
+        Mockito.when(mockedPolicyIdentifier.getSignatureElementConstraints()).thenReturn(mockedSignatureElementConstraints);
+        Mockito.when(mockedSignatureElementConstraints.containsMissingElement(signatureMock)).thenReturn(true);
     }
 }
